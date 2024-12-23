@@ -851,55 +851,34 @@ function wpbotwriter_isValidDomain($domain) {
 
 //wp-cron:
  
- // Schedule the cron job to check every hour
-// if (!wp_next_scheduled('wpbotwriter_scheduled_events_plugin_cron')) {
-//    wp_schedule_event(time(), 'hourly', 'wpbotwriter_scheduled_events_plugin_cron'); 
-//}
 // Add a custom schedule for cron jobs
 function wpbotwriter_add_custom_cron_schedule($schedules) {
     if (!isset($schedules['every_minute'])) {
         $schedules['every_minute'] = array(
             'interval' => 60, // 60 seconds
-            'display'  => __('Every Minute', 'your-plugin-textdomain')
-        );
-        error_log('Adding custom cron schedule: every_minute');
+            'display'  => __('Every Minute', 'wpbotwriter')
+        );        
     }
     return $schedules;
 }
 add_filter('cron_schedules', 'wpbotwriter_add_custom_cron_schedule');
 
+
 // Schedule the cron job during plugin activation
 function wpbotwriter_scheduled_events_plugin_activate() {
     if (!wp_next_scheduled('wpbotwriter_scheduled_events_plugin_cron')) {
-        wp_schedule_event(time(), 'every_minute', 'wpbotwriter_scheduled_events_plugin_cron');
-        error_log('Scheduling the cron job for every minute');
-    } else {
-        error_log('Cron job already scheduled');
-    }
+        wp_schedule_event(time(), 'every_minute', 'wpbotwriter_scheduled_events_plugin_cron');                
+    } 
 }
 register_activation_hook(__FILE__, 'wpbotwriter_scheduled_events_plugin_activate');
 
 // Clear the cron job upon plugin deactivation
-/*
 function wpbotwriter_scheduled_events_plugin_deactivate() {
-    $cleared = wp_clear_scheduled_hook('wpbotwriter_scheduled_events_plugin_cron');
-    if ($cleared) {
-        error_log('Cron job successfully cleared');
-    } else {
-        error_log('No cron job found to clear');
-    }
+    wp_clear_scheduled_hook('wpbotwriter_scheduled_events_plugin_cron');    
 }
 register_deactivation_hook(__FILE__, 'wpbotwriter_scheduled_events_plugin_deactivate');
-*/
-
-function wpbotwriter_scheduled_events_plugin_deactivate() {
-    error_log('Deactivation hook triggered');
-}
-register_deactivation_hook(__FILE__, 'wpbotwriter_scheduled_events_plugin_deactivate');
-
 
 // Register the cron task
-
 add_action('wpbotwriter_scheduled_events_plugin_cron', 'wpbotwriter_scheduled_events_execute_tasks');
 
  function wpbotwriter_scheduled_events_execute_tasks() {
