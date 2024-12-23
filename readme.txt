@@ -2,14 +2,14 @@
 Contributors: Esteban Stif Li
 Donate link: https://wpbotwriter.com
 Tags: automation, AI, robot, content generation
-Requires at least: 5.0
+Requires at least: 4.0
 Tested up to: 6.0
 Stable tag: 1.0.0
 Requires PHP: 5.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-WpBotWriter is a plugin that automatically generates articles using artificial intelligence.
+WpBotWriter is a plugin that automatically generates articles using artificial intelligence like chatgpt.
 
 == Description ==
 
