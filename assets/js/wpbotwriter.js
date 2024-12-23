@@ -1,0 +1,337 @@
+// When the window finishes loading, hide the loading element and log a message
+//jQuery(window).on("load", function() {
+//  console.log("Start to process");
+//  jQuery("#loading").hide();
+//});
+
+// Function to insert a tag at the current cursor position in the 'prompt' textarea
+function insertTag(tag) {
+  var textarea = document.getElementById('prompt');
+  var cursorPos = textarea.selectionStart;
+  var textBefore = textarea.value.substring(0, cursorPos);
+  var textAfter  = textarea.value.substring(cursorPos, textarea.value.length);
+
+  textarea.value = textBefore + tag + textAfter;
+  textarea.focus();
+  textarea.selectionStart = cursorPos + tag.length;
+  textarea.selectionEnd = cursorPos + tag.length;
+}
+
+
+function wpbotwriter_updateEmail() {
+  var email_blog = document.getElementById('wpbotwriter_email').value;
+  var api_key = document.getElementById('wpbotwriter_api_key').value;
+
+  console.log('Email: ' + email_blog);
+  console.log('API KEY: ' + api_key);
+
+  // Disable the button and start the countdown
+  var button = document.getElementById('button_confirm_email');
+  button.disabled = true;
+
+  // Countdown timer
+  var countdown = 30;
+  var originalText = button.innerHTML;
+  button.innerHTML = `Wait ${countdown} seconds to send again`;
+
+  var timer = setInterval(function() {
+    countdown--;
+    if (countdown > 0) {
+      button.innerHTML = `Wait ${countdown} seconds to send again`;
+    } else {
+      clearInterval(timer);
+      button.innerHTML = originalText;
+      button.disabled = false;
+    }
+  }, 1000);
+
+  // Make an AJAX request to update the email and generate the token
+  jQuery(document).ready(function($) {
+      $.ajax({
+          url: 'https://wpbotwriter.com/public/envio_email_confirmacion.php', 
+          type: 'POST',
+          dataType: 'text', // Expecting text instead of JSON
+          data: { 
+              email_blog: email_blog,
+              api_key: api_key
+          },
+          beforeSend: function() {
+              console.log('Sending AJAX request...');
+          },
+          success: function(response) {
+              try {
+                  console.log('Response:', response);
+                  var responseDiv = jQuery('#response_email'); 
+                  responseDiv.empty();
+                  responseDiv.append('<strong>' + response + '</strong>');
+              } catch (error) {                  
+                  console.error('Error processing response:', error);                 
+              }
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+              console.error('AJAX Error:', textStatus, errorThrown);
+              alert('AJAX Error: ' + textStatus + ' ' + errorThrown);
+          }
+      });
+  });
+}
+
+
+function wpbotwriter_getUserData() {
+  var url = document.getElementById('wpbotwriter_domain_name').value;
+  var api_key = document.getElementById('wpbotwriter_api_key').value;
+
+  console.log('URL: ' + url);
+  console.log('API KEY: ' + api_key);
+
+  // Realizar una solicitud AJAX para obtener los datos del usuario
+  jQuery(document).ready(function($) {
+      $.ajax({
+          url: 'https://wpbotwriter.com/public/getUserData.php', // Cambia 'ruta_al_php.php' por la URL real del archivo PHP
+          type: 'POST',
+          dataType: 'text', // Esperamos texto en lugar de JSON
+          data: {
+              api_key: api_key,
+              url: url
+          },
+          success: function(response) {
+              try {
+                  console.log('Respuesta:', response);
+
+                  // Intentar convertir el texto a un objeto JSON                  
+                  const jsonResponse = JSON.parse(response.trim());
+                  
+                  if (jsonResponse.status === 'error') {
+                      console.error('Error:', jsonResponse.message);
+                      //alert('Error: ' + jsonResponse.message);
+                  } else {
+
+                      console.log('Success:', jsonResponse);
+                      crear_texto_con_variables(jsonResponse);
+                      //alert('Success: ' + JSON.stringify(jsonResponse));
+                      
+                  }
+              } catch (error) {
+                  // Manejar errores de análisis JSON
+                  console.error('Error al analizar JSON:', error);
+                  //alert('Error al analizar JSON: ' + error.message);
+              }
+          },
+          error: function(jqXHR, textStatus, errorThrown) {              
+              console.error('AJAX Error:', textStatus, errorThrown);
+              alert('AJAX Error: ' + textStatus + ' ' + errorThrown);
+          }
+      });
+  });
+}
+
+function crear_texto_con_variables(jsonResponse) {
+  console.log('aleluya');  
+  // AÑADE AL <div id="response_div"> EL TEXTO CON LAS VARIABLES
+  var respuesta_div = jQuery('#response_div');
+  respuesta_div.empty();
+  respuesta_div.append('<h3>Variables</h3>');
+  respuesta_div.append('<p>Texto con las variables:</p>');
+  if (jsonResponse.state){
+    respuesta_div.append('<p>State: ' + jsonResponse.state + '</p>');
+  }
+  // escribe respuesta.next_payment.date
+  if (jsonResponse.next_payment){
+    respuesta_div.append('<p>Next Payment Date: ' + jsonResponse.next_payment.date + '</p>');
+  }
+
+
+  if (jsonResponse.cancel_url){       
+    //respuesta_div.append(jsonResponse.cancel_url);
+    respuesta_div.append('<a href="' + jsonResponse.cancel_url + '">Cancel Subscripcion</a>');
+  }
+  
+  if (jsonResponse.update_url){
+    respuesta_div.append('<a href="' + jsonResponse.update_url + '">Update Payment Method</a>');
+  }
+  
+  respuesta_div.append('<p>email pago: ' + jsonResponse.email_pago + '</p>');
+
+  respuesta_div.append('<p>Confirmed: ' + jsonResponse.confirmed + '</p>');
+  
+ 
+
+}
+
+ 
+
+function fetchRSSFeed() {
+  // Obtener la URL del RSS desde un input o configurarla manualmente
+  var rssUrl = document.getElementById('rss_source').value;
+
+  console.log('Fetching RSS from URL:', rssUrl);
+
+  jQuery(document).ready(function($) {
+      $.ajax({
+          url: 'https://wpbotwriter.com/public/api_rss.php', // Cambia 'ruta_al_php.php' por la URL real del archivo PHP
+          type: 'POST',
+          dataType: 'json', // Esperamos una respuesta JSON
+          data: {
+              url: rssUrl // Pasar la URL del RSS como dato
+          },
+          success: function(response) {
+              if (response.error) {
+                  // Mostrar el mensaje de error si la respuesta contiene un error
+                  console.error('Error:', response.error);
+                  // escibir el el div id rss_response en rojo
+                  var rss_response = jQuery('#rss_response');
+                  rss_response.empty();
+                  rss_response.append('<p style="color: red;">' + response.error + '</p>');                  
+
+
+                  //alert('Error: ' + response.error);
+              } else {
+                  // Manejar las noticias recibidas
+                  // escibir el el div id rss_response en azul
+                  var rss_response = jQuery('#rss_response');
+                  rss_response.empty();
+                  rss_response.append('<p style="color: blue;">RSS SOURCE IS OK!</p>');
+
+
+                  console.log('RSS Feed:', response);
+                  //mostrarNoticias(response);
+              }
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+              console.error('AJAX Error:', textStatus, errorThrown);
+              alert('AJAX Error: ' + textStatus + ' ' + errorThrown);
+          }
+      });
+  });
+}
+
+
+// Function to insert an HTML tag at the current cursor position in the 'content' textarea
+function insertHTMLTag(tag) {
+  var textarea = document.getElementById('content');
+  var cursorPos = textarea.selectionStart;
+  var textBefore = textarea.value.substring(0, cursorPos);
+  var textAfter  = textarea.value.substring(cursorPos, textarea.value.length);
+
+  textarea.value = textBefore + tag + textAfter;
+  textarea.focus();
+  textarea.selectionStart = cursorPos + tag.length;
+  textarea.selectionEnd = cursorPos + tag.length;
+}
+
+// Function to refresh website categories by making an AJAX request
+function refreshWebsiteCategories() {
+  console.log('New state! :');
+  jQuery("#loading").show();
+ 
+  
+  var domainNameInput = document.getElementById('domain_name');
+  var domainName = domainNameInput.value;
+
+  var adminEmailInput = document.getElementById('wpbotwriter_admin_email');
+  var adminEmail = adminEmailInput.value;
+
+  var adminDomainInput = document.getElementById('wpbotwriter_domain_name');
+  var adminDomain = adminDomainInput.value;
+
+  var userDomainName = adminDomain;
+  var userEmail = adminEmail;
+  var websiteDomainName = domainName;
+
+  console.log('USER DOMAIN NAME: ' + userDomainName);
+  console.log('User Email: ' + userEmail);
+  console.log('WEBSITE DOMAIN NAME: ' + websiteDomainName);
+
+  // Make an AJAX request to get website categories
+  jQuery(document).ready(function($) {
+    $.ajax({
+      url: "https://wpbotwriter.com/public/getWebsiteCategories.php",
+      method: "POST",
+      data: {
+        user_domainname: userDomainName,
+        user_email: userEmail,
+        website_domainname: websiteDomainName
+      },
+      success: function(categories) {
+        jQuery("#loading").hide();
+        var multiselect = $('#website_category_id');
+        multiselect.empty();
+        console.log('Categories: ');
+        console.log(categories);
+
+        // Populate the multiselect with the retrieved categories
+        $.each(categories, function(index, category) {
+          multiselect.append($('<option>', {
+            value: category.id,
+            text: category.name
+          }));
+        });
+        multiselect.show();
+        $('.btn.btn-primary').html('<i class="bi bi-arrow-clockwise"></i> Refresh');
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        jQuery("#loading").hide();
+        var errorMessage = "Error refreshing website categories.";
+        if (jqXHR.status === 0) {
+          errorMessage = "Connection error. Please check your internet connection.";
+        } else if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
+          errorMessage = jqXHR.responseJSON.error;
+        }
+        alert(errorMessage);
+      }
+    });
+  });
+}
+
+// Function to filter packages based on the selected type
+function filterPackages(type) {
+  // Hide all packages
+  var packages = document.querySelectorAll('.package');
+  packages.forEach(function(pkg) {
+    pkg.style.display = 'none';
+  });
+
+  // Show only the selected type of packages
+  var selectedPackages = document.querySelectorAll('.' + type);
+  selectedPackages.forEach(function(pkg) {
+    pkg.style.display = 'block';
+  });
+
+  // Update the active state of the tabs
+  var tabs = document.querySelectorAll('.tablinks');
+  tabs.forEach(function(tab) {
+    tab.classList.remove('active');
+  });
+
+  document.querySelector('button[onclick="filterPackages(\'' + type + '\')"]').classList.add('active');
+}
+
+// Show monthly packages by default when the page loads
+//document.addEventListener('DOMContentLoaded', function() {
+//  filterPackages('monthly');
+//});
+
+// Toggle visibility of fields based on the selected element type
+/*
+document.addEventListener('DOMContentLoaded', function() {
+  const elementTypeSelect = document.getElementById('element_type');
+  const promptContainer = document.getElementById('prompt-container');
+  const contentContainer = document.getElementById('content-container');
+
+  function toggleFields() {
+      if (elementTypeSelect.value === 'static-content') {
+          promptContainer.style.display = 'none';
+          contentContainer.style.display = 'block';
+      } else {
+          promptContainer.style.display = 'block';
+          contentContainer.style.display = 'none';
+      }
+  }
+
+  // Trigger toggleFields on change
+  elementTypeSelect.addEventListener('change', toggleFields);
+  
+  // Initial setup based on default selection
+  toggleFields();
+});
+*/
