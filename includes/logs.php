@@ -47,6 +47,7 @@ class WPBotWriter_Logs_Table extends WP_List_Table {
             'aigenerated_title'  => __('AI Generated Title', 'wpbotwriter'),
             'aigenerated_image'  => __('AI Generated Image', 'wpbotwriter'),
             'id_post_published' => __('ID Post Published', 'wpbotwriter'),
+            'intentosfase1' => __('Intentos Fase 1', 'wpbotwriter'),
         );
     }
 
@@ -113,6 +114,30 @@ class WPBotWriter_Logs_Table extends WP_List_Table {
             default:
                 return isset($item[$column_name]) ? esc_html($item[$column_name]) : ''; // Fallback for other columns
         }
+    }
+
+    public function column_task_status($item) {        
+        // 4 casos: inqueue, pending, completed, error 
+        $task_status = $item['task_status'];        
+        $intento_tiempo = array(0=>0,1=>0,2=>5,3=>10,4=>30,5=>60,6=>120,7=>240,8=>480); // minutos
+        $intentosfase1 = $item["intentosfase1"];
+                    
+            // si es error mostrar en rojo y mostrar que se reintentará en tiempo * intentos
+            if ($task_status == 'error') {            
+                $txt= '<span style="color:red;">Error</span>';
+                if ($intentosfase1 < 8) {  // son los que lleva
+                    $tiempo = $intento_tiempo[$intentosfase1+1]; // next intento
+                    $created_at = strtotime($item["created_at"]);
+                    $tiempo_siguiente_intento = $created_at + $tiempo*60;            
+                    $txt.= '<br>Intento ' . $intentosfase1 . ' de 8';
+                    $txt.= '<br>Will retry at ' . date('Y-m-d H:i:s', $tiempo_siguiente_intento);                
+                }                                
+            } else {
+                $txt=esc_html($task_status);
+            }
+            
+            return $txt;
+
     }
 
     public function column_aigenerated_image($item) {
@@ -235,6 +260,7 @@ function wpbotwriter_logs_register($data, $id = null) {
         'narration',
         'custom_style',
         'post_language',
+        'post_length',
         'link_post_original',
         'id_post_published',
         'task_status',

@@ -281,14 +281,19 @@ function wpbotwriter_plugin_activate() {
     error_log('Site URL: ' . $site_url);
     error_log('Admin Email: ' . $admin_email);
 
-
-
+    
+    $api_key = get_option('wpbotwriter_api_key');
+    if ($api_key) {        
+        return;
+    }
+    
+    
     $data = array(
         'user_domainname' => $site_url,
         'email_blog' => $admin_email,
     );
 
-    $response = wp_remote_post($remote_url, array(
+    $challenge_response = wp_remote_post($remote_url, array(
         'method'    => 'POST',
         'body'      => $data,
         'timeout'   => 45,
@@ -296,30 +301,68 @@ function wpbotwriter_plugin_activate() {
         'sslverify' => false, // Desactiva la verificación del certificado SSL
     ));
 
-    if (is_wp_error($response)) {
-        $error_message = $response->get_error_message();
+    
+    
+    if (is_wp_error($challenge_response)) {
+        $error_message = $challenge_response->get_error_message();
         error_log("Error sending data to $remote_url: $error_message");
+        return;
+    }
+
+    $challenge_body = wp_remote_retrieve_body($challenge_response);
+    $challenge_result = json_decode($challenge_body, true);
+
+    
+    if (!isset($challenge_result['status']) || $challenge_result['status'] !== 'success' || !isset($challenge_result['challenge'])) {
+        error_log('Invalid challenge response from server.');
+        return;
+    }
+
+    $challenge = $challenge_result['challenge'];
+
+    
+    $secret_key = '1c7b2be420b05ec389c6b7fd59ec5d7db0e457425a81fc88312dee66f3c2c663'; 
+    $challenge_response_hash = hash_hmac('sha256', $challenge, $secret_key);
+
+    
+    $response_data = array(
+        'user_domainname' => $site_url,
+        'email_blog' => $admin_email,
+        'challenge_response' => $challenge_response_hash,
+    );
+
+    $final_response = wp_remote_post($remote_url, array(
+        'method'    => 'POST',
+        'body'      => $response_data,
+        'timeout'   => 45,
+        'headers'   => array(),
+        'sslverify' => false, // Desactiva la verificación del certificado SSL
+    ));
+
+
+    if (is_wp_error($final_response)) {
+        $error_message = $final_response->get_error_message();
+        error_log("Error sending challenge response to $remote_url: $error_message");
     } else {
         // Procesar la respuesta si la solicitud fue exitosa
-        $body = wp_remote_retrieve_body($response);
+        $body = wp_remote_retrieve_body($final_response);
         $result = json_decode($body, true);
-        
 
-        error_log('Data received: ' . print_r($result, true));
+        error_log('Final Data received: ' . print_r($result, true));
 
         if (isset($result['status']) && $result['status'] === 'success' && isset($result['api_key'])) {
             // Guardar la API Key devuelta en las opciones del plugin
             update_option('wpbotwriter_api_key', sanitize_text_field($result['api_key']));
             error_log('API Key received and stored successfully.');
-            // coge la api key para probar que se ha guardao bien:
+            // coge la api key para probar que se ha guardado bien:
             $api_key = get_option('wpbotwriter_api_key');
             error_log('API Key: ' . $api_key);
         } else {
             error_log('API Key not received or invalid response.');
         }    
     }
-    
 }
+
 
 // Compatibility check for different WordPress versions
 add_action('plugins_loaded', 'wpbotwriter_compatibility_check');
@@ -850,7 +893,7 @@ function wpbotwriter_isValidDomain($domain) {
   
 
 //wp-cron:
- 
+/* 
 // Add a custom schedule for cron jobs
 function wpbotwriter_add_custom_cron_schedule($schedules) {
     if (!isset($schedules['every_minute'])) {
@@ -872,14 +915,20 @@ function wpbotwriter_scheduled_events_plugin_activate() {
 }
 register_activation_hook(__FILE__, 'wpbotwriter_scheduled_events_plugin_activate');
 
+// Register the cron task
+add_action('wpbotwriter_scheduled_events_plugin_cron', 'wpbotwriter_scheduled_events_execute_tasks');
+
+
+*/
+
 // Clear the cron job upon plugin deactivation
 function wpbotwriter_scheduled_events_plugin_deactivate() {
     wp_clear_scheduled_hook('wpbotwriter_scheduled_events_plugin_cron');    
 }
 register_deactivation_hook(__FILE__, 'wpbotwriter_scheduled_events_plugin_deactivate');
 
-// Register the cron task
-add_action('wpbotwriter_scheduled_events_plugin_cron', 'wpbotwriter_scheduled_events_execute_tasks');
+
+
 
  function wpbotwriter_scheduled_events_execute_tasks() {
     global $wpdb;
@@ -902,83 +951,79 @@ add_action('wpbotwriter_scheduled_events_plugin_cron', 'wpbotwriter_scheduled_ev
     ];
     $current_day_translated = $days_translations[$current_day];
 
-    //echo "vamos...<br>\n";
-    //pass2 Have to check if the task is still in queue or finished
-    wpbotwriter_execute_events_pass2();    
+    //PPHASE 2
+    wpbotwriter_execute_events_pass2();
     
-
-    //pass 1 Execute each event if it meets the conditions
-    // Get events scheduled for today and status=1  
-    $events = (array) $wpdb->get_results("SELECT * FROM $table_name_tasks WHERE days LIKE '%$current_day_translated%' AND status=1");
-    foreach ($events as $event) {        
+    
+    //PHASE 1 Execute each event if it meets the conditions
+    // Get tasks scheduled for today and status=1  
+    $tasks = (array) $wpdb->get_results("SELECT * FROM $table_name_tasks WHERE days LIKE '%$current_day_translated%' AND status=1");
+    foreach ($tasks as $task) {        
         // Reset execution count daily
-        $event = (array) $event;
-        if ($event["last_execution_date"] !== $current_date) {
-            $wpdb->update($table_name_tasks, ['execution_count' => 0, 'last_execution_date' => $current_date], ['id' => $event["id"]]);            
-            $event["execution_count"] = 0;
+        $task = (array) $task;
+        if ($task["last_execution_date"] !== $current_date) {
+            $wpdb->update($table_name_tasks, ['execution_count' => 0, 'last_execution_date' => $current_date], ['id' => $task["id"]]);            
+            $task["execution_count"] = 0;
         }
 
-        // Check if the event can still be executed based on its daily limit
-        if ($event["execution_count"] < $event["times_per_day"]) {
-            // Execute the event
-            echo('Executing event pass 1: ' . $event["task_name"] . ' - Times: ' . ($event["execution_count"] + 1) . "<br>\n");
-            // register in log
-            $event["task_status"] = "pending";
-            $event["id_task"] = $event["id"];  
-            $id_log=wpbotwriter_logs_register($event);
-                        
-            $id_task_server=wpbotwriter_send1_data_to_server( (array) $event);            
-            if ($id_task_server === false ) {
-                wpbotwritter_intentofase1_add($event["id"]);
-            } else {
-                echo "Task id server y actualizamos: " . $id_task_server . " en el log:" . $id_log . "<br>\n";                
-                $result=$wpdb->update($table_name_logs, ['id_task_server' => $id_task_server, 'task_status' => 'inqueue'], ['id' => $id_log]);
-                if ($result === false) {
-                    // Error en la consulta
-                    error_log('Error en la actualización: ' . $wpdb->last_error);
-                    echo 'Hubo un error en la actualización.';
-                } elseif ($result === 0) {
-                    // Consulta exitosa pero no afectó filas
-                    //echo 'Consulta ejecutada, pero no hubo cambios en la base de datos.';
-                } else {
-                    // Consulta exitosa y filas afectadas
-                    //echo 'Consulta ejecutada exitosamente, filas afectadas: ' . $result;
-                }
-            }                         
+        // Check if the task can still be executed based on its daily limit
+        if ($task["execution_count"] < $task["times_per_day"]) {            
+                //echo('Executing event pass 1: ' . $task["task_name"] . ' - Times: ' . ($task["execution_count"] + 1) . "<br>\n");            
+                $event=$task;                
+                $event["task_status"] = "pending";            
+                $event["id_task"] = $task["id"];              
+                $id_log=wpbotwriter_logs_register($event);  // create log in db
+                $event["id"]=$id_log;
+            wpbotwriter_send1_data_to_server( (array) $event);                                      
             // Update execution count in the database
-            $wpdb->update($table_name_tasks, ['execution_count' => $event["execution_count"] + 1], ['id' => $event["id"]]);
+            $wpdb->update($table_name_tasks, ['execution_count' => $task["execution_count"] + 1], ['id' => $task["id"]]);            
         }
-    }
+    }  // end tasks
+
+   
+
 }
 
-function wpbotwriter_execute_events_pass2(){    
+function wpbotwriter_execute_events_pass2(){  
+    
     // check if the task is still in queue or finished
     global $wpdb;    
     $table_name_logs = $wpdb->prefix . 'wpbotwriter_logs';
-    $events2 = (array) $wpdb->get_results("SELECT * FROM $table_name_logs WHERE task_status='inqueue'");
+    // INQUEUE
+    $events2 = (array) $wpdb->get_results("SELECT * FROM $table_name_logs WHERE task_status='inqueue'");    
     foreach ($events2 as $event) {
         $event = (array) $event;
-        // Execute the event
-        echo('Executing paso2 id_task_server: ' . $event["id_task_server"] . ' - <br>\n');                            
-        $result=wpbotwriter_send2_data_to_server( (array) $event);
-        if ($result === false ) {
-            wpbotwritter_intentofase2_add($event["id"]);
-        } else {
-            if ($result["task_status"] === 'completed') {
-                echo "Task id server y actualizamos: " . $event["id_task_server"] . " en el log:" . $event["id"] . "<br>\n";                                
-                
-                wpbotwriter_logs_register($result, $event["id"]);                
-                //genera el post
-                $result=wpbotwriter_logs_get($event["id"]);  // mezclamos el resultado con el log
-                $post_id=wpbotwriter_generate_post($result);
+        // Execute the event        
+        wpbotwriter_send2_data_to_server( (array) $event);                
+    } // end INQUEUE
 
-                $result["id_post_published"]=$post_id;
-                wpbotwriter_logs_register($result, $event["id"]);
-                echo "Post generado: " . $post_id . "<br>\n";
-            }
-        }            
-    }
-    
+
+    //IN ERROR, dependiendo del intento se vuelve a enviar mas tarde o se da por finalizado    
+    $events1 = (array) $wpdb->get_results("SELECT * FROM $table_name_logs WHERE task_status='error' and intentosfase1 < 8");
+    $intento_tiempo = array(0=>0,1=>0,2=>5,3=>10,4=>30,5=>60,6=>120,7=>240,8=>480); // minutos    
+    foreach ($events1 as $event) {
+        $event = (array) $event;
+        // Execute the event if the time has passed
+        $intentosfase1 = $event["intentosfase1"];
+        $tiempo = $intento_tiempo[$intentosfase1+1];
+        $created_at = strtotime($event["created_at"]);
+        $now = time();
+        $diff = $now - $created_at;
+        if ($diff > $tiempo * 60) {        
+            wpbotwriter_send1_data_to_server( (array) $event);                             
+        }
+        
+    } // END LOGS IN ERROR
+
+    // INQUEUE OR PENDING MORE THAN 5'
+    $events3 = (array) $wpdb->get_results("SELECT * FROM $table_name_logs WHERE  intentosfase1 < 7 and (task_status='inqueue' or task_status='pending') ");    
+    foreach ($events3 as $event) {
+        $event = (array) $event;
+        //echo "Event caso raro: " . $event["created_at"] . " - " . $event["task_status"] . " <br>\n";             
+        $event["task_status"]="error";
+        wpbotwriter_logs_register($event, $event["id"]);                                
+    } // END LOGS INQUEUE OR PENDING
+
 }
 
 //crea la funcion que genera el post
@@ -1011,7 +1056,7 @@ function wpbotwriter_generate_post($data){
 
 
 
-// Function to send data to the server pass1, recibe el task_id 
+// Function to send data to the server pass1
 function wpbotwriter_send1_data_to_server($data) {
     $remote_url = 'https://wpbotwriter.com/public/api_cola.php';
     
@@ -1055,6 +1100,7 @@ function wpbotwriter_send1_data_to_server($data) {
         'sslverify' => false, // Desactiva la verificación del certificado SSL
     ));
 
+    wpbotwritter_intentofase1_add($data["id"]);
 
     if (is_wp_error($response)) {
         $error_message = $response->get_error_message();
@@ -1067,19 +1113,27 @@ function wpbotwriter_send1_data_to_server($data) {
         if ($response['response']['code'] === 200) {
             // Procesar la respuesta si la solicitud fue exitosa
             $body = wp_remote_retrieve_body($response);
-            $result = json_decode($body, true);
-        
-            if (isset($result['task_id_server']) && $result['task_id_server'] !== 0) {
-                return $result['task_id_server'];                
-            } else {
+            $result = json_decode($body, true);        
+            if (isset($result['id_task_server']) && $result['id_task_server'] !== 0) { // ok
+                $data["id_task_server"]=$result['id_task_server'];
+                $data["task_status"]='inqueue';   
+                wpbotwriter_logs_register($data, $data["id"]);             
+                return $result['id_task_server'];                
+            } else { // error
+                $event["task_status"]="error";
+                wpbotwriter_logs_register($data, $data["id"]);                
                 error_log('Error sending data to the server');
                 return false;
             }            
-        } else {            
+        } else {  // error          
+            $event["task_status"]="error";
+            wpbotwriter_logs_register($data, $data["id"]);            
             error_log('Error sending data to the server');
             return false;
         }        
     }
+
+    
 }
 
 // Function to send data to the server pass2, recibe la respuesta si esta completa
@@ -1101,7 +1155,7 @@ function wpbotwriter_send2_data_to_server($data) {
         'sslverify' => false, // Desactiva la verificación del certificado SSL
     ));
 
-
+    wpbotwritter_intentofase1_add($data["id"]);
     if (is_wp_error($response)) {
         $error_message = $response->get_error_message();
         error_log("Error sending data to $remote_url: $error_message");
@@ -1109,24 +1163,44 @@ function wpbotwriter_send2_data_to_server($data) {
         return false;
     } else {
         // Procesar la respuesta si la solicitud fue exitosa
-        echo 'Data recived2: <pre>' . print_r($response, true) . '</pre>';
+        //echo 'Data recived2: <pre>' . print_r($response, true) . '</pre>';
         if ($response['response']['code'] === 200) {
             // Procesar la respuesta si la solicitud fue exitosa
             $body = wp_remote_retrieve_body($response);
             $result = json_decode($body, true);
             // ver si estan los datos ok, si no devolver false y error
-            echo 'Datos recibidos: <pre>' . print_r($result, true) . '</pre>';
-            echo "Imagen: " . $result['aigenerated_image'] . "<br>\n";
+            echo 'Datos recibidos: <pre>' . print_r($result, true) . '</pre>'; 
+             
+            if ($result["task_status"]=="error") {
+                $data["task_status"]="error";
+                //$data["error"]=$result["error"];
+                wpbotwriter_logs_register($data, $data["id"]);
+                return false;
+            }
+            //echo "Imagen: " . $result['aigenerated_image'] . "<br>\n";
             //sacar la imagen del post
-            echo "<img src='" . $result['aigenerated_image'] . "' alt='imagen del post' />";            
+            //echo "<img src='" . $result['aigenerated_image'] . "' alt='imagen del post' />";
+
+                echo "<h1>Task id server y actualizamos: " . $data["id_task_server"] . " en el id del log:" . $data["id"] . "</h1><br>\n";                                                
+                $result["task_status"]="completed";
+                wpbotwriter_logs_register($result, $data["id"]);                          
+                //genera el post
+                $result=wpbotwriter_logs_get($data["id"]);  // mezclamos el resultado con el log
+                $post_id=wpbotwriter_generate_post($result);
+                $result["id_post_published"]=$post_id;
+                wpbotwriter_logs_register($result, $data["id"]);
+                echo "Post generado: " . $post_id . "<br>\n";
             return $result;            
-        } else {
-            $data["error"]= "Error sending data. Response code: " . $response['response']['code'];
-            error_log('Error sending data to the server');
+        } else {            // error
+            // update log
+            $data["task_status"]="error";
+            wpbotwriter_logs_register($data, $data["id"]);                        
             return false;
         }        
     }
 
+    
+        
 }
 
 // actualiza el log con el id del post
