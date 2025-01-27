@@ -5,7 +5,7 @@
 function wpbotwriter_automatic_posts_page()
 {
     global $wpdb;
-
+ 
     $table = new wpbotwriter_tasks_Table();
     
     $table->prepare_items();
@@ -69,6 +69,7 @@ function wpbotwriter_automatic_posts_page()
 
 // maneja la pagina de agregar nuevo post automatico
 function wpbotwriter_form_page_handler(){
+  
     global $wpdb;
     $table_name = $wpdb->prefix . 'wpbotwriter_tasks'; 
 
@@ -127,6 +128,12 @@ function wpbotwriter_form_page_handler(){
         $days = isset($_POST['days']) ? implode(",", array_map('sanitize_text_field', $_POST['days'])) : "";
         $times_per_day = intval($_POST['times_per_day']);
         
+        echo "<pre>";
+        print_r($_POST);
+        echo "</pre>";
+
+ 
+        
         
         // Process only the specific values needed
         $item = array(
@@ -138,7 +145,8 @@ function wpbotwriter_form_page_handler(){
           'times_per_day'     => $times_per_day,                    
           'writer'            => sanitize_text_field($_POST['writer']),
           'narration'         => sanitize_text_field($_POST['narration']),
-          'post_length'         => sanitize_text_field($_POST['post_length']),
+          'post_length'       => sanitize_text_field($_POST['post_length']),
+          'custom_post_length'=> sanitize_text_field($_POST['custom_post_length']),
           'custom_style'      => sanitize_text_field($_POST['custom_style']),
           'post_language'     => sanitize_text_field($_POST['post_language']),
 
@@ -240,6 +248,15 @@ function wpbotwriter_form_page_handler(){
                   $item['id'] = $wpdb->insert_id;
                   if ($result) {
                       $message = __('New task was successfully saved!', 'wpbotwriter');
+                      ?>
+                        <script>
+                            setTimeout(function() {
+                                window.location.href = "<?php echo admin_url('admin.php?page=wpbotwriter_automatic_posts'); ?>";
+                            }, 300000); 
+                        </script>                      
+                      <?php
+                      
+                      
                   } else {
                       $notice = __('There was an error while saving item', 'wpbotwriter');
                   }
@@ -249,14 +266,29 @@ function wpbotwriter_form_page_handler(){
                   //echo $wpdb->last_error;
                   //echo "consulta: " . $wpdb->last_query . "<br><br>";
                 
-               // error_log('Error en la consulta: ' . $wpdb->last_error);
+               // error_log('Error en la consulta: ' . $wpdb->last_error); 
                // error_log('Consulta ejecutada: ' . $wpdb->last_query);
 
                if ($result !== false) {
                     if ($result === 0) {
-                      $message = __('No changes were made, but the update was successful.', 'wpbotwriter');
+                      $message = __('No changes were made, but the update was successful.', 'wpbotwriter');                                                                  
+                      ?>
+                        <script>
+                            setTimeout(function() {
+                                window.location.href = "<?php echo admin_url('admin.php?page=wpbotwriter_automatic_posts'); ?>";
+                            }, 300000); 
+                        </script>                      
+                      <?php
+                      
                     } else {
-                      $message = __('New task was successfully updated!', 'wpbotwriter');
+                      $message = __('New task was successfully updated!', 'wpbotwriter');                                            
+                      ?>
+                        <script>
+                            setTimeout(function() {
+                                window.location.href = "<?php echo admin_url('admin.php?page=wpbotwriter_automatic_posts'); ?>";
+                            }, 300000); 
+                        </script>                      
+                      <?php
                     }
                 } else {
                       $notice = __('There was an error while updating item: ' . $wpdb->last_error, 'wpbotwriter');
@@ -287,10 +319,14 @@ function wpbotwriter_form_page_handler(){
     ?>
 <div class="wrap">
     <div class="icon32 icon32-posts-post" id="icon-edit"><br></div>
-    <h2><?php esc_html_e('Add New', 'wpbotwriter'); ?> <a class="add-new-h2"
-        href="<?php echo esc_url(get_admin_url(get_current_blog_id(), 'admin.php?page=wpbotwriter_automatic_posts')); ?>"><?php esc_html_e('Back to List', 'wpbotwriter'); ?></a>
+    
+    <?php 
+    $is_editing = isset($_REQUEST['id']) && intval($_REQUEST['id']) > 0;
+    $title_text = $is_editing ? __('Edit Task', 'wpbotwriter') : __('Add New', 'wpbotwriter');
+    ?>
+    <h2><?php echo esc_html($title_text); ?> <a class="add-new-h2"
+      href="<?php echo esc_url(get_admin_url(get_current_blog_id(), 'admin.php?page=wpbotwriter_automatic_posts')); ?>"><?php esc_html_e('Back to List', 'wpbotwriter'); ?></a>
     </h2>
-
 
     <?php if (!empty($notice)): ?>
     <div id="notice" class="error"><p><?php echo esc_attr($notice) ?></p></div>
@@ -746,6 +782,7 @@ function wpbotwriter_post_form_meta_box_handler($item)
         $selected_website_categories = explode(',', $selected_website_categories);
 
         //Get website categories from domain
+        /*
         if (!$is_empty) {          
           $wpbotwriter_wp_website_domain_name = esc_url($item['domain_name']);
           $website_categories = wpbotwriter_get_categories_from_wordpress_website($wpbotwriter_domain_name, $wpbotwriter_admin_email, $wpbotwriter_wp_website_domain_name);
@@ -761,6 +798,7 @@ function wpbotwriter_post_form_meta_box_handler($item)
             }
           }
         }
+        */
         ?>
       </select>
       <button type="button" class="btn btn-primary" onclick="refreshWebsiteCategories()">
@@ -886,38 +924,48 @@ $default_language_code = substr($locale, 0, 2); // Obtiene el código del idioma
   </select>
   <p class="form-text">Select the desired post length or choose custom to enter a specific number of words.</p>
 </div>
+<!-- End Post Length -->
+
+
 
 <!-- Custom Length Input -->
 <div class="col-md-6" id="customLengthInput" style="display: <?php echo (!in_array($item['post_length'], [400, 800, 1600])) ? 'block' : 'none'; ?>;">
   <label class="form-label">Custom Length (max 3000):</label>
-  <input id="custom_post_long" type="number" class="form-control" value="<?php echo (!in_array($item['post_length'], [400, 800, 1600])) ? esc_attr($item['post_length']) : ''; ?>" onchange="updatePostLength()">
+  <input id="custom_post_length"  name="custom_post_length" type="number" class="form-control" value="<?php echo $item['custom_post_length'] ?>" onchange="updatePostLength()">
   <p class="form-text">Enter the number of words you want the post to have.</p>
 </div>
 <br>
 
 <script>
-  function toggleCustomLengthInput() {
+ function toggleCustomLengthInput() {
     var selectElement = document.getElementById("post_length");
     var customInput = document.getElementById("customLengthInput");
-    var customPostLong = document.getElementById("custom_post_long");
+    var customPostLong = document.getElementById("custom_post_length");
 
     if (selectElement.value === "custom") {
-      customInput.style.display = "block";
-      customPostLong.setAttribute("name", "post_long");
+        customInput.style.display = "block";        
     } else {
-      customInput.style.display = "none";
-      customPostLong.removeAttribute("name");
+        customInput.style.display = "none";        
+        customPostLong.value = ""; // Limpia el valor del campo personalizado si no se usa
     }
-  }
+}
 
-  function updatePostLength() {
+function updatePostLength() {
     var selectElement = document.getElementById("post_length");
-    var customPostLong = document.getElementById("custom_post_long");
+    var customPostLong = document.getElementById("custom_post_length");
 
-    if (customPostLong.value && selectElement.value === "custom") {
-      selectElement.value = customPostLong.value;
+    // Validar el valor personalizado
+    var customValue = parseInt(customPostLong.value, 10);
+    if (isNaN(customValue) || customValue < 10 || customValue > 3000) {
+        alert("Please enter a valid number between 10 and 3000.");
+        return;
     }
-  }
+
+    // Crear o actualizar una opción temporal en el selector para reflejar el valor
+    var customOption = selectElement.querySelector('option[value="custom"]');
+    customOption.textContent = `Custom (${customValue} words)`; // Actualiza el texto visible
+    selectElement.value = "custom"; // Asegura que el selector esté en "Custom"
+}
 </script>
 <!-- End Post Length -->
 

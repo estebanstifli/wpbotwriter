@@ -35,12 +35,7 @@ Yes, you can configure certain parameters to guide the content creation process.
 
 == Changelog ==
 
-= 1.0.0 =
+= 1.2.3 =
 * Initial version of the plugin.
-
-== Upgrade Notice ==
-
-= 1.0.0 =
-Initial release, make sure to review the settings after updating.
 
 

@@ -4,6 +4,19 @@ if (!class_exists('WP_List_Table')) {
 }
 
 function wpbotwriter_logs_page_handler() {
+    $timezone = get_option('timezone_string');
+    if (!$timezone) {
+        $timezone = 'UTC';
+    }
+    date_default_timezone_set($timezone);
+    
+
+    $current_time = current_time('mysql'); // Hora en formato MySQL (Y-m-d H:i:s)    
+    $current_timestamp = current_time('timestamp'); // Timestamp ajustado a la zona horaria del sitio
+    
+
+
+
     // Check if the user has the necessary capability
     if (!current_user_can('manage_options')) {
         return;
@@ -124,8 +137,12 @@ class WPBotWriter_Logs_Table extends WP_List_Table {
                     
             // si es error mostrar en rojo y mostrar que se reintentará en tiempo * intentos
             if ($task_status == 'error') {            
-                $txt= '<span style="color:red;">Error</span>';
-                if ($intentosfase1 < 8) {  // son los que lleva
+                $id_task_server = $item['id_task_server'];
+                $txt= '<span style="color:red;">Error (id server:' . $id_task_server . ')</span>';
+                if ($item["error"]!='') {
+                    $txt.= '<br>' . esc_html($item["error"]) . "<br>";
+                }
+                if ($intentosfase1 < 8) {  // son los que lleva                    
                     $tiempo = $intento_tiempo[$intentosfase1+1]; // next intento
                     $created_at = strtotime($item["created_at"]);
                     $tiempo_siguiente_intento = $created_at + $tiempo*60;            
@@ -218,26 +235,11 @@ function wpbotwritter_get_logs_titles($id_task) {
             }
         }
     }
-    return $titles_array;
+    return $titles_array; 
     
 }
 
-// crea una funcion que devuelva todos los ids de un id_task
-function wpbotwritter_get_logs_ids($id_task) {
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'wpbotwriter_logs';
 
-    $query = "SELECT ids_posts FROM $table_name WHERE id_task = $id_task";
-    $ids = $wpdb->get_results($query, ARRAY_A);
-    $ids_array = [];
-    if (empty($ids)) {
-        return false;
-    } else {
-        foreach ($ids as $id) {
-            $ids_array[] = $id['ids_posts'];
-        }
-    }    
-}
 
 
 // Registra un log en la tabla wpbotwriter_logs (inserta o actualiza)
@@ -289,6 +291,7 @@ function wpbotwriter_logs_register($data, $id = null) {
         'news_source',
         'rss_source',
         'ai_keywords',
+        'intentosfase1'
     );
 
     // Crear el array con solo los valores existentes en $data
@@ -308,6 +311,10 @@ function wpbotwriter_logs_register($data, $id = null) {
         return $updated !== false ? $id : false;
     } else {
         // Insertar un nuevo registro
+        // Añadir la fecha de creación
+        $current_time = current_time('mysql');
+        $insert_data['created_at'] = $current_time;
+
         $wpdb->insert($table_name, $insert_data);
 
         // Retornar el ID del nuevo registro

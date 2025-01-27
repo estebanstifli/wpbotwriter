@@ -30,14 +30,14 @@ function wpbotwriter_updateEmail() {
   button.disabled = true;
 
   // Countdown timer
-  var countdown = 30;
+  var countdown = 200;
   var originalText = button.innerHTML;
   button.innerHTML = `Wait ${countdown} seconds to send again`;
 
   var timer = setInterval(function() {
     countdown--;
     if (countdown > 0) {
-      button.innerHTML = `Wait ${countdown} seconds to send again`;
+      button.innerHTML = `Wait ${countdown} seconds to send again if you don't receive the email`;
     } else {
       clearInterval(timer);
       button.innerHTML = originalText;
@@ -130,31 +130,50 @@ function crear_texto_con_variables(jsonResponse) {
   // AÑADE AL <div id="response_div"> EL TEXTO CON LAS VARIABLES
   var respuesta_div = jQuery('#response_div');
   respuesta_div.empty();
-  respuesta_div.append('<h3>Variables</h3>');
-  respuesta_div.append('<p>Texto con las variables:</p>');
-  if (jsonResponse.state){
-    respuesta_div.append('<p>State: ' + jsonResponse.state + '</p>');
+  respuesta_div.append('<h3>Subscription</h3>');
+  
+  if (jsonResponse.plan_name){
+    respuesta_div.append('<p>Plan Name: ' + jsonResponse.plan_name + '</p>');
   }
+
+  var state = jsonResponse.state;
+  if (state === 'deleted'){
+    state= 'canceled';
+  }
+  
+  if (state){
+    respuesta_div.append('<p>State: ' + state + '</p>');
+  }
+  if (state==='canceled'){
+    respuesta_div.append('<p><a href="https://wpbotwriter.com" target="_blank">Subscribe again</a></p>');
+  }
+
+  
+  if (jsonResponse.user_email){
+    respuesta_div.append('<p>User Email: ' + jsonResponse.user_email + '</p>');
+  }
+
+  //last_payment
+  if (jsonResponse.last_payment){
+    respuesta_div.append('<p>Last Payment Date: ' + jsonResponse.last_payment.date + '</p>');
+  }
+
   // escribe respuesta.next_payment.date
   if (jsonResponse.next_payment){
     respuesta_div.append('<p>Next Payment Date: ' + jsonResponse.next_payment.date + '</p>');
   }
 
-
-  if (jsonResponse.cancel_url){       
-    //respuesta_div.append(jsonResponse.cancel_url);
-    respuesta_div.append('<a href="' + jsonResponse.cancel_url + '">Cancel Subscripcion</a>');
+  if (state!=='canceled'){
+    if (jsonResponse.update_url){
+      respuesta_div.append('<p>Update Payment Method: <a href="' + jsonResponse.update_url + '">Update Payment Method</a></p>');
+    }
+    
+    if (jsonResponse.cancel_url){           
+      respuesta_div.append('<p>Cancel Subscription: <a href="' + jsonResponse.cancel_url + '">Cancel Subscripcion</a> </p>');
+    }
   }
   
-  if (jsonResponse.update_url){
-    respuesta_div.append('<a href="' + jsonResponse.update_url + '">Update Payment Method</a>');
-  }
   
-  respuesta_div.append('<p>email pago: ' + jsonResponse.email_pago + '</p>');
-
-  respuesta_div.append('<p>Confirmed: ' + jsonResponse.confirmed + '</p>');
-  
- 
 
 }
 
