@@ -1,9 +1,9 @@
 <?php
 /*
-Plugin Name: WpBotWriter
+Plugin Name: WP BotWriter
 Plugin URI:  https://www.wpbotwriter.com
-Description: Plugin for automatically generating posts using artificial intelligence. Create content from scratch with AI and generate custom images. Optimize content for SEO, including tags, titles, and image descriptions. Advanced features like ChatGPT, automatic content creation, image generation, AutoGPT, PDF content generation, SEO optimization, and AI training make this plugin a complete tool for writers and content creators.
-Version: 1.2.2
+Description: Plugin for automatically generating posts using artificial intelligence. Create content from scratch with AI and generate custom images. Optimize content for SEO, including tags, titles, and image descriptions. Advanced features like ChatGPT, automatic content creation, image generation, SEO optimization, and AI training make this plugin a complete tool for writers and content creators.
+Version: 1.2.5
 Author: Esteban Stif Li
 License:           GPL v2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -42,13 +42,6 @@ function wpbotwriter_enqueue_scripts() {
     wp_register_script( 'wpbotwriter_wpbotwriter',$my_plugin_dir.'/assets/js/wpbotwriter.js' , array('jquery'), false, true );
     wp_enqueue_script( 'wpbotwriter_wpbotwriter' );
 
-    //wp_register_script( 'wpbotwriter_wpbotwriter_ai_modals',$my_plugin_dir.'/assets/js/wpbotwriter_ai_modals.js' , array('jquery'), false, true );
-    //wp_enqueue_script( 'wpbotwriter_wpbotwriter_ai_modals' );
-
-    //wp_register_script( 'wpbotwriter_wpbotwriter_rewriting_modal',$my_plugin_dir.'/assets/js/wpbotwriter_rewriting_modal.js' , array('jquery'), false, true );
-    //wp_enqueue_script( 'wpbotwriter_rewriting_modal' );
-
-
     wp_enqueue_script('wpbotwriter-admin-ajax-status', $my_plugin_dir.'/assets/js/admin-ajax-status.js', ['jquery'], null, true);
     wp_localize_script('wpbotwriter-admin-ajax-status', 'wpbotwriter_ajax_object', [
         'ajax_url' => admin_url('admin-ajax.php'),
@@ -58,9 +51,6 @@ function wpbotwriter_enqueue_scripts() {
 
 }
 add_action('admin_enqueue_scripts','wpbotwriter_enqueue_scripts');
-
-
-
 
 
 
@@ -78,12 +68,11 @@ if (!function_exists('deactivate_plugins')) {
 function wpbotwriter_enqueue_styles(){
     $my_plugin_dir = plugin_dir_url(__FILE__);
     $screen = get_current_screen();
-    //error_log('Screen ID: ' . $screen->id); // Esto registra el ID de pantalla en los logs
 
     $slug = $screen->id;
-
+	
     // Only enqueue styles for a specific admin screen
-    if($slug === 'wpbotwriter_page_wpbotwriter_automatic_post_new' || $slug === 'wpbotwriter_page_wpbotwriter_automatic_posts' || $slug === 'wpbotwriter_page_wpbotwriter_prueba' || $slug === 'wpbotwriter_page_wpbotwriter_settings' || $slug === 'wpbotwriter_page_wpbotwriter_logs' || $slug === 'wpbotwriter_page_check_Api') {    
+    if($slug === 'wp-botwriter_page_wpbotwriter_automatic_post_new' || $slug === 'wp-botwriter_page_wpbotwriter_automatic_posts' || $slug === 'wp-botwriter_page_wpbotwriter_prueba' || $slug === 'wp-botwriter_page_wpbotwriter_settings' || $slug === 'wp-botwriter_page_wpbotwriter_logs' || $slug === 'wp-botwriter_page_check_Api') {    
         // Register and enqueue styles with dynamic versioning for better caching
         wp_register_style('wpbotwriter_bootstrap', $my_plugin_dir . 'assets/css/bootstrap.min.css', array(), filemtime(plugin_dir_path(__FILE__) . 'assets/css/bootstrap.min.css'));
         wp_enqueue_style('wpbotwriter_bootstrap');
@@ -109,8 +98,8 @@ add_action('admin_menu', 'wpbotwriter_add_admin_menu');
 
 function wpbotwriter_add_admin_menu() {
     add_menu_page(
-        __('WpBotWriter', 'wpbotwriter'),  // Translatable menu title
-        __('WpBotWriter', 'wpbotwriter'),  // Translatable page title
+        __('WP BotWriter', 'wpbotwriter'),  // Translatable menu title
+        __('WP BotWriter', 'wpbotwriter'),  // Translatable page title
         'manage_options',                  // Capabilities (only administrators)
         'wpbotwriter_menu',            // Page slug
         'wpbotwriter_admin_page',          // Callback function to display content
@@ -167,9 +156,7 @@ function wpbotwriter_prueba() {
     if (!current_user_can('manage_options')) {
         return;
     }    
-
     
-
     ?>
 
     <h1>Prueba</h1>
@@ -187,84 +174,35 @@ function wpbotwriter_prueba() {
 
 
 
-// Function to display the settings page
+// First screen of the plugin
 function wpbotwriter_admin_page() {
     if (!current_user_can('manage_options')) {
         return;
     }
-
-    if (isset($_GET['settings-updated'])) {
-        add_settings_error('wpbotwriter_messages', 'wpbotwriter_message', __('Settings saved', 'wpbotwriter'), 'updated');
-    }
-
-    settings_errors('wpbotwriter_messages');
-    ?>
-    <div class="wrap">
-        <h1><?php echo __('WpBotWriter Settings', 'wpbotwriter'); ?></h1>
-        <form action="options.php" method="post">
-            <?php
-            settings_fields('wpbotwriter_settings_group');
-            do_settings_sections('wpbotwriter_settings');
-            submit_button(__('Save Settings', 'wpbotwriter'));
-            ?>
-        </form>
-    </div>
+    
+    ?>    
+     <div class="wrap">
+        <h1><?php echo __('WP BotWriter - AI-Powered Content Creation', 'wpbotwriter'); ?></h1>
+        <p><?php echo __('WP BotWriter is a powerful plugin that automates content generation using artificial intelligence.', 'wpbotwriter'); ?></p>
+        <ul>
+            <li><?php echo __('✔ AI-generated content and rewrites', 'wpbotwriter'); ?></li>
+            <li><?php echo __('✔ SEO-optimized posts with titles, tags, and metadata', 'wpbotwriter'); ?></li>
+            <li><?php echo __('✔ Fetch content from WordPress, RSS, and Google News', 'wpbotwriter'); ?></li>
+            <li><?php echo __('✔ Automated publishing with customizable schedules', 'wpbotwriter'); ?></li>
+            <li><?php echo __('✔ AI-powered image generation for posts', 'wpbotwriter'); ?></li>
+            <li><?php echo __('✔ Prevents duplicate content and spam', 'wpbotwriter'); ?></li>
+            <li><?php echo __('✔ Easy-to-use interface with no technical knowledge required', 'wpbotwriter'); ?></li>
+        </ul>
+        <h2><?php echo __('How to Get Started?', 'wpbotwriter'); ?></h2>
+        <p><?php echo __('1. Create tasks in Automatic Post.', 'wpbotwriter'); ?></p>        
+        <p><?php echo __('2. The plugin will automatically generate the posts!', 'wpbotwriter'); ?></p>
+        <p><?php echo __('3. (Optional) Configure the settings if needed.', 'wpbotwriter'); ?></p>
+	</div>
+    
     <?php
 }
 
 
-
-
-
-// Register plugin settings
-add_action('admin_init', 'wpbotwriter_register_settings');
-
-function wpbotwriter_register_settings() {
-    register_setting('wpbotwriter_settings_group', 'wpbotwriter_settings');
-
-    add_settings_section(
-        'wpbotwriter_section',
-        __('General Settings', 'wpbotwriter'),  // Translatable section title
-        'wpbotwriter_section_callback',
-        'wpbotwriter_settings'
-    );
-
-    add_settings_field(
-        'wpbotwriter_remote_url',
-        __('Server URL', 'wpbotwriter'),       // Translatable field label
-        'wpbotwriter_remote_url_callback',
-        'wpbotwriter_settings',
-        'wpbotwriter_section'
-    );
-
-    add_settings_field(
-        'wpbotwriter_custom_message',
-        __('Custom Message', 'wpbotwriter'),  // Translatable field label
-        'wpbotwriter_custom_message_callback',
-        'wpbotwriter_settings',
-        'wpbotwriter_section'
-    );
-}
-
-function wpbotwriter_section_callback() {
-    echo '<p>' . __('General settings for the WpBotWriter plugin.', 'wpbotwriter') . '</p>';
-}
-
-function wpbotwriter_remote_url_callback() {
-    $options = get_option('wpbotwriter_settings');
-    ?>
-    <input type="text" name="wpbotwriter_settings[remote_url]" value="<?php echo isset($options['remote_url']) ? esc_attr($options['remote_url']) : ''; ?>" style="width: 400px;" />
-    <p class="description"><?php echo __('Enter the server URL to send data.', 'wpbotwriter'); ?></p>
-    <?php
-}
-
-function wpbotwriter_custom_message_callback() {
-    $options = get_option('wpbotwriter_settings');
-    ?>
-    <input type="text" name="wpbotwriter_settings[custom_message]" value="<?php echo isset($options['custom_message']) ? esc_attr($options['custom_message']) : ''; ?>" style="width: 400px;" />
-    <p class="description"><?php echo __('Write a custom message to be sent.', 'wpbotwriter'); ?></p>
-    <?php
-}
 
 // Hook that runs on plugin activation
 register_activation_hook(__FILE__, 'wpbotwriter_plugin_activate');
@@ -338,27 +276,21 @@ function wpbotwriter_plugin_activate() {
         'body'      => $response_data,
         'timeout'   => 45,
         'headers'   => array(),
-        'sslverify' => $ssl_verify, // Desactiva la verificación del certificado SSL
+        'sslverify' => $ssl_verify, 
     ));
 
 
     if (is_wp_error($final_response)) {
         $error_message = $final_response->get_error_message();
         error_log("Error sending challenge response to $remote_url: $error_message");
-    } else {
-        // Procesar la respuesta si la solicitud fue exitosa
+    } else {        
         $body = wp_remote_retrieve_body($final_response);
         $result = json_decode($body, true);
 
-        error_log('Final Data received: ' . print_r($result, true));
-
-        if (isset($result['status']) && $result['status'] === 'success' && isset($result['api_key'])) {
-            // Guardar la API Key devuelta en las opciones del plugin
+        if (isset($result['status']) && $result['status'] === 'success' && isset($result['api_key'])) {            
             update_option('wpbotwriter_api_key', sanitize_text_field($result['api_key']));
-            error_log('API Key received and stored successfully.');
-            // coge la api key para probar que se ha guardado bien:
-            $api_key = get_option('wpbotwriter_api_key');
-            error_log('API Key: ' . $api_key);
+            error_log('API Key received and stored successfully.');            
+            
         } else {
             error_log('API Key not received or invalid response.');
         }    
@@ -372,7 +304,7 @@ add_action('plugins_loaded', 'wpbotwriter_compatibility_check');
 function wpbotwriter_compatibility_check() {
     global $wp_version;
 
-    if (version_compare($wp_version, '1.0', '<')) {
+    if (version_compare($wp_version, '4.0', '<')) {
         deactivate_plugins(plugin_basename(__FILE__));
         wp_die(__('This plugin requires WordPress 4.0 or higher', 'wpbotwriter'));
     }
@@ -417,6 +349,7 @@ if (!class_exists('WP_List_Table')) {
                 `domain_name` VARCHAR(255) NOT NULL,
                 `category_id` VARCHAR(255),
                 `website_category_id` VARCHAR(255),
+                `website_category_name` VARCHAR(255),
                 `aigenerated_title` TEXT NOT NULL,
                 `aigenerated_content` TEXT NOT NULL,
                 `aigenerated_tags` TEXT NOT NULL,
@@ -508,31 +441,6 @@ if (!class_exists('WP_List_Table')) {
   register_activation_hook(__FILE__, 'wpbotwriter_create_table');
   
 
-// luego habra que modificarlo:
-    // Plugin menu callback function
-/*    
-function wpbotwriter_automaticPosts_page()
-{
-    if (!current_user_can('manage_options')) {
-        return;
-    }
-      // Creating an instance
-      $table = new wpbotwriter_tasks_Table();
-
-      echo '<div class="wrap"><h2>Tasks Admin Table</h2>';
-      echo '<form method="post">';
-
-      // Add nonce field
-      wp_nonce_field('wpbotwriter_nonce', '_wpnonce');
-      // Prepare table
-      $table->prepare_items();
-      // Search form
-      $table->search_box('search', 'search_id');
-      // Display table
-      $table->display();
-      echo '</div></form>';
-}
-      */
 
 
 // Extending class
@@ -580,7 +488,7 @@ class wpbotwriter_tasks_Table extends WP_List_Table
 
         usort($this->table_data, array($this, 'usort_reorder'));
 
-        /* pagination */
+        /* pagination */ 
         $per_page = $this->get_items_per_page('elements_per_page', 10);
         $current_page = $this->get_pagenum();
         $total_items = count($this->table_data);
@@ -620,19 +528,20 @@ class wpbotwriter_tasks_Table extends WP_List_Table
             $writer = strtolower($writer);
 
             $slug='wpbotwriter_automatic_post_new';
-            $id=$item['id'];
-            // devolver la imagen del escritor
+            $id=$item['id'];         
             $link="<a class='row-title' href='?page=$slug&id=$id'>";
             $img= '<img src="' . esc_url($dir_images_writers . $writer . '.jpeg') . '" alt="' . esc_attr($writer) . '" class="writer-photo">';
             return $link . $img . '</a>';
             
         }
 
+        
+
         function column_status($item){
             
             $status = $item['status'];
             $status_opuesto = $status ? 0 : 1;
-            $icono = $status ? 'dashicons-yes-alt' : 'dashicons-dismiss';
+            $icono = $status ? 'dashicons-yes' : 'dashicons-dismiss';
             $texto_status = $status ? 'Desactivate' : 'Activate';
         
             return sprintf(
@@ -652,13 +561,11 @@ class wpbotwriter_tasks_Table extends WP_List_Table
         $category_name = '';
         foreach ($categories as $category) {
             $aux_cateforias=explode(',',$item['category_id']);
-            // si la categoria esta en el array de categorias
             if (in_array($category->term_id, $aux_cateforias)) {
                 $category_name .= $category->name . ', ';
             }
             
-        }
-        // quita la ultima coma
+        }        
         $category_name = rtrim($category_name, ', ');
         return $category_name;
     }
@@ -793,69 +700,37 @@ class wpbotwriter_tasks_Table extends WP_List_Table
 
 function wpbotwriter_validate_website($item,$is_manual = false)
 {
-    return true; 
+    
     $messages = array();
 
-    echo 'website_type: ' . $item['website_type'] . '<br>';
-    echo 'website_name: ' . $item['website_name'] . '<br>';
-    echo 'domain_name: ' . $item['domain_name'] . '<br>';
-    echo 'category_id: ' . $item['category_id'] . '<br>';
-    echo 'website_category_id way: ' . $item['website_category_id'] . '<br>';
     
-    
-
-    if($item['website_type'] !== 'ai'){
-
-      if( !wpbotwriter_isValidDomain(sanitize_text_field($item['domain_name'])) ){
-        $messages[] = __('Domain name should be valid.', 'wpbotwriter');
-      }
-
-      if($item['website_type'] !== 'news'){
-        if (empty($item['domain_name'])) $messages[] = __('Domain Name is required', 'wpbotwriter');
-
-      
-
-      if(!wpbotwriter_is_site_working(sanitize_text_field($item['domain_name']), sanitize_text_field($item['website_type']))){
-        $messages[] = __('Domain name should be valid.', 'wpbotwriter');
-      }
-
-      }else{
-
-        if (empty($item['news_keyword'])) $messages[] = __('Keyword is required', 'wpbotwriter');
-
-      }
-
-      
-
-    }else{
-
-      if(empty($item['title_prompt']) && empty($item['content_prompt']) && empty($item['tags_prompt']) && empty($item['image_prompt']) ){
-        $messages[] = __('You should enter at least 1 prompt! ', 'wpbotwriter');
-      }
-
-      if(str_contains($item['content_prompt'],'wpbotwriter-promptcode') && ! wpbotwriter_validate_prompt_code($item['content_prompt'] )){
-        $messages[] = __('invalid prompt code. ', 'wpbotwriter');
-      }
-
-      if(str_contains($item['title_prompt'],'wpbotwriter-promptcode') || str_contains($item['tags_prompt'],'wpbotwriter-promptcode') || str_contains($item['image_prompt'],'wpbotwriter-promptcode') ){
-        $messages[] = __('only content prompt can use prompt codes. ', 'wpbotwriter');
-      }
-
-
-    }   
-
-    //if (empty($item['website_name']) && !$is_manual) $messages[] = __('Website name is required', 'wpbotwriter');
+    if (empty($item['task_name'])) $messages[] = __('Task Name is required', 'wpbotwriter');
     if (empty($item['category_id'])) $messages[] = __('Category is required', 'wpbotwriter');
-
-    if($item['website_type'] === 'news'){
-
-      if($item['news_country'] === 'any' && $item['news_language'] !== 'any' ){
-        $messages[] = __('you should select a country! ', 'wpbotwriter');
+    if (empty($item['website_type'])) $messages[] = __('Website Type is required', 'wpbotwriter');
 
 
-      }
-
+    if($item['website_type'] == 'wordpress'){
+        if (empty($item['domain_name'])) { 
+            $messages[] = __('Domain Name is required', 'wpbotwriter');
+        }
+        if( !wpbotwriter_isValidDomain(sanitize_text_field($item['domain_name'])) ){
+            $messages[] = __('Domain name should be valid.', 'wpbotwriter');
+        }
     }
+
+    if ($item['website_type'] == 'rss') {
+        if (empty($item['rss_source'])) {
+            $messages[] = __('RSS Source is required', 'wpbotwriter');
+        }
+    }
+
+    if ($item['website_type'] == 'news') {
+        if (empty($item['news_keyword'])) {
+            $messages[] = __('News keyword is required', 'wpbotwriter');
+        }
+    }
+    
+    if (empty($item['category_id'])) $messages[] = __('Category is required', 'wpbotwriter');
 
     if (empty($messages)) return true;
     return implode('<br />', $messages);
@@ -901,10 +776,10 @@ function wpbotwriter_isValidDomain($domain) {
 
 // Add a custom schedule for cron jobs
 function wpbotwriter_add_custom_cron_schedule($schedules) {
-    if (!isset($schedules['every_minute'])) {
-        $schedules['every_minute'] = array(
+    if (!isset($schedules['every_30'])) {
+        $schedules['every_30'] = array(
             'interval' => 30, // 30 seconds
-            'display'  => __('Every Minute', 'wpbotwriter')
+            'display'  => __('Every thirty seconds', 'wpbotwriter')
         );        
     }
     return $schedules; 
@@ -917,7 +792,7 @@ function wpbotwriter_scheduled_events_plugin_activate() {
         return;
     }
     if (!wp_next_scheduled('wpbotwriter_scheduled_events_plugin_cron')) {
-        wp_schedule_event(time(), 'every_minute', 'wpbotwriter_scheduled_events_plugin_cron');                
+        wp_schedule_event(time(), 'every_30', 'wpbotwriter_scheduled_events_plugin_cron');                
     } 
 }
 register_activation_hook(__FILE__, 'wpbotwriter_scheduled_events_plugin_activate');
@@ -1016,7 +891,7 @@ function wpbotwriter_execute_events_pass2(){
         $tiempo = $intento_tiempo[$intentosfase1+1];
         $created_at = strtotime($event["created_at"]);
         $now = time() + 3600; // UTC+1
-        echo "Event : " . $event["created_at"] . " - " . $event["task_status"] . " - " . $intentosfase1 . " - " . $tiempo . " - " . $now . " - " . $created_at . "<br>\n";
+        
 
         $diff = $now - $created_at;
         if ($diff > $tiempo * 60) {        
@@ -1039,10 +914,9 @@ function wpbotwriter_execute_events_pass2(){
 
 }
 
-//crea la funcion que genera el post
+
 function wpbotwriter_generate_post($data){
-    // Create a new post
-    echo '<h1>Data to generate post:</h1> <pre>' . print_r($data, true) . '</pre>';    
+    // Create a new post    
     $post_id = wp_insert_post(array(
         'post_title' => $data['aigenerated_title'],
         'post_content' => $data['aigenerated_content'],
@@ -1050,7 +924,7 @@ function wpbotwriter_generate_post($data){
         'post_author' => $data['author_selection'],
         'post_category' => explode(',', $data['category_id']),        
     ));
-    // ver si se ha creado el post
+    
     if ($post_id === 0) {
         error_log('Error creating post');
         return false;
@@ -1060,8 +934,7 @@ function wpbotwriter_generate_post($data){
     $tags = explode(',', $data['aigenerated_tags']);
     wp_set_post_tags($post_id, $tags);
 
-    // Add image to the post
-    echo "Adjuntado Imagen: " . $data['aigenerated_image'] . "<br>\n";
+    // Add image to the post    
     wpbotwriter_attach_image_to_post($post_id, $data['aigenerated_image'], $data['aigenerated_title']);
     return $post_id;
 }
@@ -1117,7 +990,7 @@ function wpbotwriter_send1_data_to_server($data) {
     $data["error"]= "";
 
     $ssl_verify = get_option('wpbotwriter_sslverify');
-    echo "<h1>ssl verify: " . $ssl_verify . "</h1>";
+
 
     if ($ssl_verify === 'no') {
         $ssl_verify = false;
@@ -1125,7 +998,7 @@ function wpbotwriter_send1_data_to_server($data) {
         $ssl_verify = true;
     }   
 
-    echo "<h1>ssl verify: " . $ssl_verify . "</h1>";
+
 
     $response = wp_remote_post($remote_url, array(
         'method'    => 'POST',
@@ -1245,8 +1118,9 @@ function wpbotwriter_send2_data_to_server($data) {
                 $result=wpbotwriter_logs_get($data["id"]);  // mezclamos el resultado con el log
                 $post_id=wpbotwriter_generate_post($result);
                 $result["id_post_published"]=$post_id;
-                wpbotwriter_logs_register($result, $data["id"]);
-                echo "Post generado: " . $post_id . "<br>\n";
+               
+
+                wpbotwriter_logs_register($result, $data["id"]);               
                 return $result;
             }            
         } else {            // error
@@ -1379,11 +1253,6 @@ function wpbotwriter_attach_image_to_post($post_id, $image_url, $post_title) {
             // $filename = al titulo del post slugificado
             $filename = sanitize_title($post_title) . '.jpg';
             
-            echo "descargando imagen:" . $filename . "<br> Directorio de subida: <br>";
-            echo $upload_dir['path'];
-            echo "<br>";
-
-            
             if (wp_mkdir_p($upload_dir['path'])) {
                 $file = $upload_dir['path'] . '/' . $filename;
                 error_log('Directorio creado exitosamente: ' . $upload_dir['path']);
@@ -1392,8 +1261,6 @@ function wpbotwriter_attach_image_to_post($post_id, $image_url, $post_title) {
                 error_log('No se pudo crear el directorio, usando el directorio base: ' . $upload_dir['basedir']);
             }
             
-            echo "Guardando imagen en: $file<br>";
-
             if (file_put_contents($file, $image_data) !== false) {
                 error_log('Imagen guardada exitosamente en: ' . $file);
             } else {
@@ -1414,11 +1281,11 @@ function wpbotwriter_attach_image_to_post($post_id, $image_url, $post_title) {
             wp_update_attachment_metadata($attach_id, $attach_data);
             set_post_thumbnail($post_id, $attach_id);
     
-            echo "Imagen adjuntada al artículo.<br>";
+            
         }
     }
   
-    // funcion que pueda que no exista
+    
     if (!function_exists('sanitize_textarea_field')) {
         function sanitize_textarea_field($str) {
             // Asegurarse de que el valor es una cadena
@@ -1459,32 +1326,6 @@ function wpbotwriter_attach_image_to_post($post_id, $image_url, $post_title) {
 		}
 	}
 
-    function wpbotwriter_validate_prompt_code($input) {
-        // Search for the "autowp-promptcode" structure and get its content
-        preg_match('/\[autowp-promptcode\](.*?)\[\/autowp-promptcode\]/s', $input, $matches);
-         
-        if (empty($matches) || count($matches) < 2) {
-            // If the "autowp-promptcode" structure cannot be found or its content is missing, return false
-            return false;
-        }
-        
-        $content = $matches[1]; // Get the content of "autowp-promptcode"
-        $fields = explode(',', $content); // Split the fields by comma
-        
-        // Check if the required number of fields is present and each field is filled
-        if (count($fields) != 6) {
-            return false;
-        }
-        
-        foreach ($fields as $field) {
-            $aux=trim($field);
-            if (empty($aux)) {
-                return false;
-            }
-        }
-        
-        return true; // Return true if valid
-    }
  
     if (!function_exists('str_contains')) {
         /**

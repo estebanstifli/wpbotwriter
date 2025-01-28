@@ -240,12 +240,10 @@ function insertHTMLTag(tag) {
 
 // Function to refresh website categories by making an AJAX request
 function refreshWebsiteCategories() {
-  console.log('New state! :');
   jQuery("#loading").show();
- 
-  
+
   var domainNameInput = document.getElementById('domain_name');
-  var domainName = domainNameInput.value;
+  var domainName = domainNameInput.value.trim(); // Elimina espacios en blanco
 
   var adminEmailInput = document.getElementById('wpbotwriter_admin_email');
   var adminEmail = adminEmailInput.value;
@@ -253,54 +251,59 @@ function refreshWebsiteCategories() {
   var adminDomainInput = document.getElementById('wpbotwriter_domain_name');
   var adminDomain = adminDomainInput.value;
 
-  var userDomainName = adminDomain;
-  var userEmail = adminEmail;
-  var websiteDomainName = domainName;
-
-  console.log('USER DOMAIN NAME: ' + userDomainName);
-  console.log('User Email: ' + userEmail);
-  console.log('WEBSITE DOMAIN NAME: ' + websiteDomainName);
-
-  // Make an AJAX request to get website categories
-  jQuery(document).ready(function($) {
-    $.ajax({
-      url: "https://wpbotwriter.com/public/getWebsiteCategories.php",
-      method: "POST",
-      data: {
-        user_domainname: userDomainName,
-        user_email: userEmail,
-        website_domainname: websiteDomainName
-      },
-      success: function(categories) {
-        jQuery("#loading").hide();
-        var multiselect = $('#website_category_id');
-        multiselect.empty();
-        console.log('Categories: ');
-        console.log(categories);
-
-        // Populate the multiselect with the retrieved categories
-        $.each(categories, function(index, category) {
-          multiselect.append($('<option>', {
-            value: category.id,
-            text: category.name
-          }));
-        });
-        multiselect.show();
-        $('.btn.btn-primary').html('<i class="bi bi-arrow-clockwise"></i> Refresh');
-      },
-      error: function(jqXHR, textStatus, errorThrown) {
-        jQuery("#loading").hide();
-        var errorMessage = "Error refreshing website categories.";
-        if (jqXHR.status === 0) {
-          errorMessage = "Connection error. Please check your internet connection.";
-        } else if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
-          errorMessage = jqXHR.responseJSON.error;
-        }
-        alert(errorMessage);
+  // Asegurar que el dominio tenga https://
+  function ensureHttps(url) {
+      if (!/^https?:\/\//i.test(url)) {
+          return "https://" + url;
       }
-    });
+      return url;
+  }
+
+  // Aplicar la corrección al dominio del usuario
+  var websiteDomainName = ensureHttps(domainName);
+
+  
+
+  // Realizar la solicitud AJAX
+  jQuery(document).ready(function($) {
+      $.ajax({
+          url: "https://wpbotwriter.com/public/getWebsiteCategories.php",
+          method: "POST",
+          data: {
+              user_domainname: adminDomain,
+              user_email: adminEmail,
+              website_domainname: websiteDomainName
+          },
+          success: function(categories) {
+              jQuery("#loading").hide();
+              var multiselect = $('#website_category_id');
+              multiselect.empty();
+              console.log('Categories:', categories);
+
+              // Llenar el select con las categorías obtenidas
+              $.each(categories, function(index, category) {
+                  multiselect.append($('<option>', {
+                      value: category.id,
+                      text: category.name
+                  }));
+              });
+              multiselect.show();
+              $('.btn.btn-primary').html('<i class="bi bi-arrow-clockwise"></i> Refresh');
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+              jQuery("#loading").hide();
+              var errorMessage = "Error refreshing website categories.";
+              if (jqXHR.status === 0) {
+                  errorMessage = "Connection error. Please check your internet connection.";
+              } else if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
+                  errorMessage = jqXHR.responseJSON.error;
+              }
+              alert(errorMessage);
+          }
+      });
   });
 }
+
 
 // Function to filter packages based on the selected type
 function filterPackages(type) {

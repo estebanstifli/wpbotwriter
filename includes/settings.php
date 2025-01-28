@@ -61,6 +61,8 @@ function wpbotwriter_settings_page_handler() {
         'normal',
         'default'
     );
+
+
     ?>
     
     

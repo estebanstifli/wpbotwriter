@@ -1,7 +1,4 @@
 <?php
-
-
-// muestra todos los posts automaticos
 function wpbotwriter_automatic_posts_page()
 {
     global $wpdb;
@@ -67,7 +64,7 @@ function wpbotwriter_automatic_posts_page()
 <?php
 }
 
-// maneja la pagina de agregar nuevo post automatico
+
 function wpbotwriter_form_page_handler(){
   
     global $wpdb;
@@ -91,12 +88,13 @@ function wpbotwriter_form_page_handler(){
         'times_per_day'    => 1,
         'execution_count' => 0, // Initialize execution count to zero
         'last_execution_date' => null, // Set last execution date to null initially
-        'website_type'      => 'wordpress',
+        'website_type'      => 'ai',
 
         'website_name'              => '',                
         'domain_name'              => '',
         'category_id'              => '',
         'website_category_id'      => '',
+        'website_category_name'      => '',
         'aigenerated_title'        => '',
         'aigenerated_content'      => '',
         'aigenerated_tags'         => '',
@@ -127,13 +125,7 @@ function wpbotwriter_form_page_handler(){
     if ( isset($_REQUEST['nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_REQUEST['nonce'])), basename(__FILE__))) {
         $days = isset($_POST['days']) ? implode(",", array_map('sanitize_text_field', $_POST['days'])) : "";
         $times_per_day = intval($_POST['times_per_day']);
-        
-        echo "<pre>";
-        print_r($_POST);
-        echo "</pre>";
 
- 
-        
         
         // Process only the specific values needed
         $item = array(
@@ -155,6 +147,7 @@ function wpbotwriter_form_page_handler(){
           'domain_name'       => sanitize_url($_POST['domain_name']),
           'category_id'       => isset($_POST['category_id']) ? array_map('intval', $_POST['category_id']) : array(),
           'website_category_id'=> isset($_POST['website_category_id']) ? array_map('intval', $_POST['website_category_id']) : array(),
+          'website_category_name'=> sanitize_text_field($_POST['website_category_name']),
           'aigenerated_title'  => '',
           'aigenerated_content'=> '',
           'aigenerated_tags'   => '',
@@ -190,54 +183,15 @@ function wpbotwriter_form_page_handler(){
 
         //Convert website_category_id to text    
         $website_category_ids = implode(",", $item['website_category_id']);
+        
+
          $item['website_category_id'] = $website_category_ids;
-        
-        
-
-        
-        
-
-        // Set WP-CRON 
-
-        $settings = unserialize(get_option('wpbotwriter_settings'));
-
-        $wpcron_status = $settings['wpcron_status'];
-
-        $wpcron_status ='1'; // mio
-        /*
-        if(!isset($wpcron_status)){
-          wpbotwriter_update_wp_cron_status('1');
-        }
-
-        $time_value_type = $settings['selected_time_type'];
-
-        $user_wpcron_time = wpbotwriter_get_wpcron_time($time_value_type);
-        $next_two_minutes = time() + 2 * 60;
-
-        // Schedule WP-Cron
-            if (!wp_next_scheduled('wpbotwriter_cron')) {
-            wp_schedule_event($next_two_minutes, $user_wpcron_time, 'wpbotwriter_cron');
-            
-          } else {
-            wp_clear_scheduled_hook('wpbotwriter_cron');
-            wp_schedule_event($next_two_minutes, $user_wpcron_time, 'wpbotwriter_cron');
-          }
-          */
-
-
+          
 
           $item_valid = wpbotwriter_validate_website($item);
           if ($item_valid === true) {
 
-            /*
-            echo "<pre>";            
-            foreach ($item as $key => $value) {
-              echo $key . " => " . $value . " => " . gettype($value) . "<br>";
-            }
-
-            echo "</pre>";
-            */
-
+        
             //$item = array_map('sanitize_text_field', $item); // Sanitize all inputs
               if ($item['id'] == 0) {
                   $result = $wpdb->insert($table_name, $item);
@@ -252,7 +206,7 @@ function wpbotwriter_form_page_handler(){
                         <script>
                             setTimeout(function() {
                                 window.location.href = "<?php echo admin_url('admin.php?page=wpbotwriter_automatic_posts'); ?>";
-                            }, 300000); 
+                            }, 3000); 
                         </script>                      
                       <?php
                       
@@ -263,12 +217,7 @@ function wpbotwriter_form_page_handler(){
               } else {
                   $result = $wpdb->update($table_name, $item, array('id' => $item['id']));
                    
-                  //echo $wpdb->last_error;
-                  //echo "consulta: " . $wpdb->last_query . "<br><br>";
-                
-               // error_log('Error en la consulta: ' . $wpdb->last_error); 
-               // error_log('Consulta ejecutada: ' . $wpdb->last_query);
-
+        
                if ($result !== false) {
                     if ($result === 0) {
                       $message = __('No changes were made, but the update was successful.', 'wpbotwriter');                                                                  
@@ -276,7 +225,7 @@ function wpbotwriter_form_page_handler(){
                         <script>
                             setTimeout(function() {
                                 window.location.href = "<?php echo admin_url('admin.php?page=wpbotwriter_automatic_posts'); ?>";
-                            }, 300000); 
+                            }, 3000); 
                         </script>                      
                       <?php
                       
@@ -286,7 +235,7 @@ function wpbotwriter_form_page_handler(){
                         <script>
                             setTimeout(function() {
                                 window.location.href = "<?php echo admin_url('admin.php?page=wpbotwriter_automatic_posts'); ?>";
-                            }, 300000); 
+                            }, 3000); 
                         </script>                      
                       <?php
                     }
@@ -345,54 +294,30 @@ function wpbotwriter_form_page_handler(){
                 <div id="post-body-content">
                     
                     <?php do_meta_boxes('wpbotwriter_automatic_post_new', 'normal', $item); ?>
-                    <input type="submit" value="<?php esc_attr_e('Save', 'wpbotwriter')?>" id="submit" class="button-primary" name="submit">
+                    <input type="submit" value="<?php esc_attr_e('Save', 'wpbotwriter')?>" id="submit" class="button-primary" name="submit" onclick="preSelectedOptions()">
                 </div>
             </div>
         </div>
     </form>
 </div>
+<script>
+function preSelectedOptions() {
+    let select = document.getElementById("website_category_id");
+    let selectedOptions = [...select.selectedOptions];
+
+    let values = selectedOptions.map(option => option.value);
+    let texts = selectedOptions.map(option => option.text);
+  
+    website_category_name = selectedOptions.map(option => option.text);
+    document.querySelector('input[name="website_category_name"]').value = website_category_name.join(',');    
+
+}
+</script>
+
+
 <?php
 }
  
-
-function wpbotwriter_get_categories_from_wordpress_website($user_domainname, $user_email, $website_domainname) {
-
-  $url = "https://wpbotwriter.com/public/getWebsiteCategories.php";
-    
-  // Datos que serán enviados en la solicitud POST
-  $postData = [
-      'user_domainname' => $user_domainname,
-      'user_email' => $user_email,
-      'website_domainname' => $website_domainname
-  ];
-
-  // Realizar la solicitud POST usando wp_remote_post
-  $response = wp_remote_post($url, [
-      'body' => $postData
-  ]);
-
-  // Verificar si hubo un error en la solicitud
-  if (is_wp_error($response)) {
-      $error_msg = $response->get_error_message();
-      die("Error: " . $error_msg);
-  }
-
-  // Obtener el cuerpo de la respuesta
-  $response_body = wp_remote_retrieve_body($response);
-
-  // Decodificar respuesta JSON
-  $categories = json_decode($response_body, true);
-
-  if (json_last_error() !== JSON_ERROR_NONE) {
-      die("Error decoding JSON response");
-  }
-
-  // Retornar categorías
-  return $categories;
-    
-    
-    
-}
 
 
 function wpbotwriter_get_admin_email(){
@@ -690,7 +615,19 @@ function wpbotwriter_post_form_meta_box_handler($item)
   
   <!-- Radio Button Options with Icons -->
   <div class="source-options">
-  
+    <!-- Articles from the Own Blog --> 
+    <label class="source-option">
+      <input type="radio" name="website_type" value="ai" <?php if ($item['website_type'] === 'ai') {
+                                                                      echo 'checked';
+                                                                    } ?>>
+
+      <img src="<?php echo esc_url($dir_images_icons . 'sameblog100.png'); ?>" alt="Own Blog Articles" class="source-icon">
+      <div class="writer-info">
+        <strong><?php echo esc_html__('IA Articles from topics or keywords', 'wpbotwriter'); ?></strong>
+        <p><?php echo esc_html__('Create News Articles from topics or keywords.', 'wpbotwriter'); ?></p>      
+      </div>
+    </label>
+
     <!-- WordPress External -->
     <label class="source-option">
       <input type="radio" name="website_type" value="wordpress" required <?php if ($item['website_type'] === 'wordpress') {
@@ -728,18 +665,7 @@ function wpbotwriter_post_form_meta_box_handler($item)
       </div>
     </label>
     
-    <!-- Articles from the Own Blog --> 
-    <label class="source-option">
-      <input type="radio" name="website_type" value="ai" <?php if ($item['website_type'] === 'ai') {
-                                                                      echo 'checked';
-                                                                    } ?>>
-
-      <img src="<?php echo esc_url($dir_images_icons . 'sameblog100.png'); ?>" alt="Own Blog Articles" class="source-icon">
-      <div class="writer-info">
-        <strong><?php echo esc_html__('IA Articles from topics or keywords', 'wpbotwriter'); ?></strong>
-        <p><?php echo esc_html__('Create News Articles from topics or keywords.', 'wpbotwriter'); ?></p>      
-      </div>
-    </label>
+    
     
     <!-- External Research -->
      <!-- hidden 
@@ -766,9 +692,21 @@ function wpbotwriter_post_form_meta_box_handler($item)
 </div>
 
 
+
 <!-- website_category_id -->
 <div class="col-md-6" id="div_website_category_id">
-      <label for="website_category_id" class="form-label">External Website Categories:</label><br>
+      <label for="website_category_id" class="form-label">External Website Categories:</label><br>      
+      <input type="hidden" name="website_category_name" value="<?php echo esc_attr($item['website_category_name']); ?>">
+      
+      <?php
+                                            if (!$is_empty) {
+                                                echo esc_html__('Previously selected: ', 'wpbotwriter') . esc_html($item['website_category_name']);
+                                            }
+                                            ?>
+
+
+
+
       <select id="website_category_id" name="website_category_id[]" multiple class="form-select" <?php
                                                                                             if ($is_empty) {
                                                                                               echo 'style="display: none;"';
@@ -779,26 +717,9 @@ function wpbotwriter_post_form_meta_box_handler($item)
         //Get selected categories
         $selected_website_categories = $item['website_category_id'];
         //Turn categories to array list
-        $selected_website_categories = explode(',', $selected_website_categories);
+        $selected_website_categories = explode(',', $selected_website_categories); 
 
-        //Get website categories from domain
-        /*
-        if (!$is_empty) {          
-          $wpbotwriter_wp_website_domain_name = esc_url($item['domain_name']);
-          $website_categories = wpbotwriter_get_categories_from_wordpress_website($wpbotwriter_domain_name, $wpbotwriter_admin_email, $wpbotwriter_wp_website_domain_name);
-
-          if (!$website_categories['error']) {
-
-            foreach ($website_categories as $website_category) {
-              if (in_array($website_category['id'], $selected_website_categories)) {
-                echo '<option value="' . esc_attr($website_category['id']) . '" selected>' . esc_html($website_category['name']) . '</option>';
-                continue;
-              }
-              echo '<option value="' . esc_attr($website_category['id']) . '">' . esc_html($website_category['name']) . '</option>';
-            }
-          }
-        }
-        */
+        
         ?>
       </select>
       <button type="button" class="btn btn-primary" onclick="refreshWebsiteCategories()">
@@ -930,7 +851,7 @@ $default_language_code = substr($locale, 0, 2); // Obtiene el código del idioma
 
 <!-- Custom Length Input -->
 <div class="col-md-6" id="customLengthInput" style="display: <?php echo (!in_array($item['post_length'], [400, 800, 1600])) ? 'block' : 'none'; ?>;">
-  <label class="form-label">Custom Length (max 3000):</label>
+  <label class="form-label">Custom Length (max 4000):</label>
   <input id="custom_post_length"  name="custom_post_length" type="number" class="form-control" value="<?php echo $item['custom_post_length'] ?>" onchange="updatePostLength()">
   <p class="form-text">Enter the number of words you want the post to have.</p>
 </div>
@@ -956,8 +877,8 @@ function updatePostLength() {
 
     // Validar el valor personalizado
     var customValue = parseInt(customPostLong.value, 10);
-    if (isNaN(customValue) || customValue < 10 || customValue > 3000) {
-        alert("Please enter a valid number between 10 and 3000.");
+    if (isNaN(customValue) || customValue < 10 || customValue > 4000) {
+        alert("Please enter a valid number between 10 and 4000.");
         return;
     }
 
@@ -989,6 +910,7 @@ function updatePostLength() {
   const elemento_rss_source = document.getElementById('rss_source');
 
   const div_ai = document.getElementById('div_ai');
+  const elemento_ai_keywords = document.getElementById('ai_keywords');
 
 
 
@@ -1021,8 +943,10 @@ function updatePostLength() {
       }
       if (value === 'ai') {
         div_ai.style.display = 'block';
+        elemento_ai_keywords.required = true;
       } else {
         div_ai.style.display = 'none';
+        elemento_ai_keywords.required = false;
       }
 
     };

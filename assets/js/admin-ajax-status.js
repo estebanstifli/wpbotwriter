@@ -17,7 +17,7 @@ jQuery(document).ready(function($) {
             },
             success: function(response) {
                 if(response.success) {
-                    const nuevoIcono = nuevoStatus ? 'dashicons-yes-alt' : 'dashicons-dismiss';
+                    const nuevoIcono = nuevoStatus ? 'dashicons-yes' : 'dashicons-dismiss';
                     const nuevoTexto = nuevoStatus ? 'Desactivate' : 'Activate';
 
                     iconElement.attr('class', 'icono-status dashicons ' + nuevoIcono);

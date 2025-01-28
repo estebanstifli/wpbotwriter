@@ -60,7 +60,7 @@ class WPBotWriter_Logs_Table extends WP_List_Table {
             'aigenerated_title'  => __('AI Generated Title', 'wpbotwriter'),
             'aigenerated_image'  => __('AI Generated Image', 'wpbotwriter'),
             'id_post_published' => __('ID Post Published', 'wpbotwriter'),
-            'intentosfase1' => __('Intentos Fase 1', 'wpbotwriter'),
+            
         );
     }
 
@@ -158,6 +158,17 @@ class WPBotWriter_Logs_Table extends WP_List_Table {
     }
 
     public function column_aigenerated_image($item) {
+        // chek if the post if published
+        $id_post_published = $item['id_post_published'];
+        if ($id_post_published != 0) {
+            // obtener la url de la imagen del post
+            $post_thumbnail_id = get_post_thumbnail_id($id_post_published);
+            $post_thumbnail_url = wp_get_attachment_image_src($post_thumbnail_id, 'thumbnail');
+            if ($post_thumbnail_url) {
+                return '<img src="' . esc_url($post_thumbnail_url[0]) . '" alt="Post Image" width="50">';
+            }
+        }
+
         // Render the image or fallback to text if invalid
         if (filter_var($item['aigenerated_image'], FILTER_VALIDATE_URL)) {
             return '<img src="' . esc_url($item['aigenerated_image']) . '" alt="Generated Image" width="50">';
