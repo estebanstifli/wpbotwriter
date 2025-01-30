@@ -36,8 +36,6 @@ function wpbotwriter_enqueue_scripts() {
     wp_register_script( 'wpbotwriter_bootstrap_bundle',$my_plugin_dir.'/assets/js/bootstrap.bundle.min.js' , array('jquery','wpbotwriter_jquery_ui'), false, true );
     wp_enqueue_script( 'wpbotwriter_bootstrap_bundle' );
 
-    wp_register_script( 'wpbotwriter_jquery_ui',$my_plugin_dir.'/assets/js/jquery-ui.min.js' , array('jquery'), false, true );
-    wp_enqueue_script( 'wpbotwriter_jquery_ui' );
 
     wp_register_script( 'wpbotwriter_wpbotwriter',$my_plugin_dir.'/assets/js/wpbotwriter.js' , array('jquery'), false, true );
     wp_enqueue_script( 'wpbotwriter_wpbotwriter' );
@@ -182,23 +180,23 @@ function wpbotwriter_admin_page() {
     }
     
     ?>    
-     <div class="wrap">
-        <h1><?php echo __('WP BotWriter - AI-Powered Content Creation', 'wpbotwriter'); ?></h1>
-        <p><?php echo __('WP BotWriter is a powerful plugin that automates content generation using artificial intelligence.', 'wpbotwriter'); ?></p>
+    <div class="wrap">
+        <h1><?php echo esc_html__('WP BotWriter - AI-Powered Content Creation', 'wpbotwriter'); ?></h1>
+        <p><?php echo esc_html__('WP BotWriter is a powerful plugin that automates content generation using artificial intelligence.', 'wpbotwriter'); ?></p>
         <ul>
-            <li><?php echo __('✔ AI-generated content and rewrites', 'wpbotwriter'); ?></li>
-            <li><?php echo __('✔ SEO-optimized posts with titles, tags, and metadata', 'wpbotwriter'); ?></li>
-            <li><?php echo __('✔ Fetch content from WordPress, RSS, and Google News', 'wpbotwriter'); ?></li>
-            <li><?php echo __('✔ Automated publishing with customizable schedules', 'wpbotwriter'); ?></li>
-            <li><?php echo __('✔ AI-powered image generation for posts', 'wpbotwriter'); ?></li>
-            <li><?php echo __('✔ Prevents duplicate content and spam', 'wpbotwriter'); ?></li>
-            <li><?php echo __('✔ Easy-to-use interface with no technical knowledge required', 'wpbotwriter'); ?></li>
+            <li><?php echo esc_html__('✔ AI-generated content and rewrites', 'wpbotwriter'); ?></li>
+            <li><?php echo esc_html__('✔ SEO-optimized posts with titles, tags, and metadata', 'wpbotwriter'); ?></li>
+            <li><?php echo esc_html__('✔ Fetch content from WordPress, RSS, and Google News', 'wpbotwriter'); ?></li>
+            <li><?php echo esc_html__('✔ Automated publishing with customizable schedules', 'wpbotwriter'); ?></li>
+            <li><?php echo esc_html__('✔ AI-powered image generation for posts', 'wpbotwriter'); ?></li>
+            <li><?php echo esc_html__('✔ Prevents duplicate content and spam', 'wpbotwriter'); ?></li>
+            <li><?php echo esc_html__('✔ Easy-to-use interface with no technical knowledge required', 'wpbotwriter'); ?></li>
         </ul>
-        <h2><?php echo __('How to Get Started?', 'wpbotwriter'); ?></h2>
-        <p><?php echo __('1. Create tasks in Automatic Post.', 'wpbotwriter'); ?></p>        
-        <p><?php echo __('2. The plugin will automatically generate the posts!', 'wpbotwriter'); ?></p>
-        <p><?php echo __('3. (Optional) Configure the settings if needed.', 'wpbotwriter'); ?></p>
-	</div>
+        <h2><?php echo esc_html__('How to Get Started?', 'wpbotwriter'); ?></h2>
+        <p><?php echo esc_html__('1. Create tasks in Automatic Post.', 'wpbotwriter'); ?></p>        
+        <p><?php echo esc_html__('2. The plugin will automatically generate the posts!', 'wpbotwriter'); ?></p>
+        <p><?php echo esc_html__('3. (Optional) Configure the settings if needed.', 'wpbotwriter'); ?></p>
+    </div>
     
     <?php
 }
@@ -246,7 +244,7 @@ function wpbotwriter_plugin_activate() {
     
     if (is_wp_error($challenge_response)) {
         $error_message = $challenge_response->get_error_message();
-        error_log("Error sending data to $remote_url: $error_message");
+        //error_log("Error sending data to $remote_url: $error_message");
         return;
     }
 
@@ -255,7 +253,7 @@ function wpbotwriter_plugin_activate() {
 
     
     if (!isset($challenge_result['status']) || $challenge_result['status'] !== 'success' || !isset($challenge_result['challenge'])) {
-        error_log('Invalid challenge response from server.');
+        //error_log('Invalid challenge response from server.');
         return;
     }
 
@@ -283,17 +281,17 @@ function wpbotwriter_plugin_activate() {
 
     if (is_wp_error($final_response)) {
         $error_message = $final_response->get_error_message();
-        error_log("Error sending challenge response to $remote_url: $error_message");
+        //error_log("Error sending challenge response to $remote_url: $error_message");
     } else {        
         $body = wp_remote_retrieve_body($final_response);
         $result = json_decode($body, true);
 
         if (isset($result['status']) && $result['status'] === 'success' && isset($result['api_key'])) {            
             update_option('wpbotwriter_api_key', sanitize_text_field($result['api_key']));
-            error_log('API Key received and stored successfully.');            
+            //error_log('API Key received and stored successfully.');            
             
         } else {
-            error_log('API Key not received or invalid response.');
+            //error_log('API Key not received or invalid response.');
         }    
     }
 }
@@ -307,7 +305,8 @@ function wpbotwriter_compatibility_check() {
 
     if (version_compare($wp_version, '4.0', '<')) {
         deactivate_plugins(plugin_basename(__FILE__));
-        wp_die(__('This plugin requires WordPress 4.0 or higher', 'wpbotwriter'));
+
+        wp_die(esc_html__('This plugin requires WordPress 4.0 or higher', 'wpbotwriter'));
     }
 }
 
@@ -323,10 +322,8 @@ if (!class_exists('WP_List_Table')) {
     global $wpdb;
     try {
 
-        $tasks_table_name = $wpdb->prefix . 'wpbotwriter_tasks';
-        $tasks_prepared_query = $wpdb->prepare("SHOW TABLES LIKE %s", $tasks_table_name);
-
-        if ($wpdb->get_var($tasks_prepared_query) !== $tasks_table_name) {
+        $tasks_table_name = $wpdb->prefix . 'wpbotwriter_tasks';        
+        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $tasks_table_name)) !== $tasks_table_name) {
             $charset_collate = $wpdb->get_charset_collate();
 
             $tasks_sql = "CREATE TABLE $tasks_table_name (
@@ -379,9 +376,7 @@ if (!class_exists('WP_List_Table')) {
 
         // Table wpbotwriter_logs
         $logs_table_name = $wpdb->prefix . 'wpbotwriter_logs';
-        $logs_prepared_query = $wpdb->prepare("SHOW TABLES LIKE %s", $logs_table_name);
-
-        if ($wpdb->get_var($logs_prepared_query) !== $logs_table_name) {
+        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $tasks_table_name)) !== $tasks_table_name) {
             $charset_collate = $wpdb->get_charset_collate();
 
             $logs_sql = "CREATE TABLE $logs_table_name (
@@ -436,7 +431,7 @@ if (!class_exists('WP_List_Table')) {
 
     } catch (Exception $e) {
         
-        error_log("Error creating wpbotwriter tables: " . $e->getMessage());
+        //error_log("Error creating wpbotwriter tables: " . $e->getMessage());
     }
   }
   register_activation_hook(__FILE__, 'wpbotwriter_create_table');
@@ -472,7 +467,7 @@ class wpbotwriter_tasks_Table extends WP_List_Table
     {
         //data
         if ( isset( $_POST['s'] ) && isset( $_POST['_wpnonce'] ) && wp_verify_nonce( sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'wpbotwriter_nonce' ) ) {
-          $search_query = sanitize_text_field($_POST['s']);
+          $search_query = sanitize_text_field(wp_unslash($_POST['s']));
           $this->table_data = $this->get_table_data($search_query);
         } else {
           $this->table_data = $this->get_table_data();
@@ -508,17 +503,20 @@ class wpbotwriter_tasks_Table extends WP_List_Table
      
 
         function column_task_name($item){
-
             $slug='wpbotwriter_automatic_post_new';
+            $page = isset($_REQUEST['page']) ? sanitize_text_field(wp_unslash($_REQUEST['page'])) : '';
+
+            $url_edit= wp_nonce_url('?page=' . $slug . '&id=' . $item['id'], "wpbotwriter_tasks_action");
+            $url_delete= wp_nonce_url('?page=' . $page . '&action=delete&id=' . $item['id'], "wpbotwriter_tasks_action");
 
             $actions = array(
-                'edit' => sprintf('<a href="?page=' . $slug . '&id=%s">%s</a>', $item['id'], __('Edit', 'wpbotwriter')),
-                'delete' => sprintf('<a href="?page=%s&action=delete&id=%s">%s</a>', sanitize_text_field($_REQUEST['page']), $item['id'], __('Delete', 'wpbotwriter')),
+                'edit' => sprintf('<a href="%s">%s</a>', $url_edit, __('Edit', 'wpbotwriter')),                
+                'delete' => sprintf('<a href="%s">%s</a>', $url_delete, __('Delete', 'wpbotwriter')),
             );
 
             $id=$item['id'];
             return sprintf('%s %s',
-                "<a class='row-title' href='?page=$slug&id=$id'>" . $item['task_name'] . "</a>",
+                "<a class='row-title' href='?page=$slug&id=$id&_wpnonce=" . wp_create_nonce('wpbotwriter_tasks_action') . "'>" . $item['task_name'] . "</a>",
                 $this->row_actions($actions)
             );
         }
@@ -586,8 +584,12 @@ class wpbotwriter_tasks_Table extends WP_List_Table
     }
 
     function process_bulk_action()
-    {
-    
+    {        
+        // Verify nonce
+        if (!isset($_REQUEST['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_REQUEST['_wpnonce'])), "wpbotwriter_tasks_action")) {
+            return;
+        }
+         
         global $wpdb;
 
         $table = $wpdb->prefix . 'wpbotwriter_tasks';
@@ -598,10 +600,7 @@ class wpbotwriter_tasks_Table extends WP_List_Table
             if (!empty($request_id)) {
                 // Prepare the DELETE query with proper escaping
                 $placeholders = implode(',', array_fill(0, count($request_id), '%d'));
-                $query = $wpdb->prepare("DELETE FROM $table WHERE id IN($placeholders)", $request_id);
-
-                // Execute the query
-                $wpdb->query($query);
+                $wpdb->query($wpdb->prepare("DELETE FROM {$table} WHERE id IN({$placeholders})", $request_id));
             }
         }
     }
@@ -661,7 +660,7 @@ class wpbotwriter_tasks_Table extends WP_List_Table
         );
     }
 
-    public function get_sortable_columns(){
+    public function get_sortable_columns(){ 
       $sortable_columns = array(
             'task_name'  => array('task_name', false),            
             'days'  => array('days', false),
@@ -673,17 +672,15 @@ class wpbotwriter_tasks_Table extends WP_List_Table
 
       // Sorting function
       function usort_reorder($a, $b)
-      {
-          // If no sort, default to task_name
-          
-          $sanitized_orderby = isset($_GET['orderby']) ? sanitize_text_field($_GET['orderby']) : '';
+      { 
+          // If no sort, default to task_name          
+          $sanitized_orderby = isset($_GET['orderby']) ? sanitize_text_field(wp_unslash($_GET['orderby'])) : '';
 
           $orderby = (!empty($sanitized_orderby)) ? $sanitized_orderby : 'task_name';
   
-          // If no order, default to asc
-          $sanitized_get_id = isset($_GET['id']) ? sanitize_text_field($_GET['id']) : 'asc';
+          $order = isset($_GET['order']) ? sanitize_text_field(wp_unslash($_GET['order'])) : 'asc';
+
           
-          $order = (!empty($sanitized_get_id)) ? $sanitized_get_id : 'asc';
   
           // Determine sort order
           $result = strcmp($a[$orderby], $b[$orderby]);
@@ -819,18 +816,18 @@ register_deactivation_hook(__FILE__, 'wpbotwriter_scheduled_events_plugin_deacti
     $table_name_logs = $wpdb->prefix . 'wpbotwriter_logs';
 
     // Get the current day and date
-    $current_day = date('l');
-    $current_date = date('Y-m-d');
+    $current_day = gmdate('l');
+    $current_date = gmdate('Y-m-d');
 
     // Translate the day for matching with stored values
     $days_translations = [
-        'Monday' => __('Monday', 'scheduled-events-plugin'),
-        'Tuesday' => __('Tuesday', 'scheduled-events-plugin'),
-        'Wednesday' => __('Wednesday', 'scheduled-events-plugin'),
-        'Thursday' => __('Thursday', 'scheduled-events-plugin'),
-        'Friday' => __('Friday', 'scheduled-events-plugin'),
-        'Saturday' => __('Saturday', 'scheduled-events-plugin'),
-        'Sunday' => __('Sunday', 'scheduled-events-plugin'), 
+        'Monday' => __('Monday', 'wpbotwriter'),
+        'Tuesday' => __('Tuesday', 'wpbotwriter'),
+        'Wednesday' => __('Wednesday', 'wpbotwriter'),
+        'Thursday' => __('Thursday', 'wpbotwriter'),
+        'Friday' => __('Friday', 'wpbotwriter'),
+        'Saturday' => __('Saturday', 'wpbotwriter'),
+        'Sunday' => __('Sunday', 'wpbotwriter'), 
     ];
     $current_day_translated = $days_translations[$current_day];
 
@@ -841,7 +838,7 @@ register_deactivation_hook(__FILE__, 'wpbotwriter_scheduled_events_plugin_deacti
     
     //PHASE 1 Execute each event if it meets the conditions
     // Get tasks scheduled for today and status=1  
-    $tasks = (array) $wpdb->get_results("SELECT * FROM $table_name_tasks WHERE days LIKE '%$current_day_translated%' AND status=1");
+    $tasks = (array) $wpdb->get_results($wpdb->prepare("SELECT * FROM {$table_name_tasks} WHERE days LIKE %s AND status = %d", '%' . $wpdb->esc_like($current_day_translated) . '%', 1));
     foreach ($tasks as $task) {        
         // Reset execution count daily
         $task = (array) $task;
@@ -874,7 +871,7 @@ function wpbotwriter_execute_events_pass2(){
     global $wpdb;    
     $table_name_logs = $wpdb->prefix . 'wpbotwriter_logs';
     // INQUEUE
-    $events2 = (array) $wpdb->get_results("SELECT * FROM $table_name_logs WHERE task_status='inqueue'");    
+    $events2 = (array) $wpdb->get_results($wpdb->prepare("SELECT * FROM {$table_name_logs} WHERE task_status=%s", 'inqueue'));    
     foreach ($events2 as $event) {
         $event = (array) $event;
         // Execute the event        
@@ -883,7 +880,7 @@ function wpbotwriter_execute_events_pass2(){
 
 
     //IN ERROR, dependiendo del intento se vuelve a enviar mas tarde o se da por finalizado    
-    $events1 = (array) $wpdb->get_results("SELECT * FROM $table_name_logs WHERE task_status='error' and intentosfase1 < 8");
+    $events1 = (array) $wpdb->get_results($wpdb->prepare("SELECT * FROM {$table_name_logs} WHERE task_status=%s AND intentosfase1 < %d", 'error', 8));
     $intento_tiempo = array(0=>0,1=>0,2=>5,3=>10,4=>30,5=>60,6=>120,7=>240,8=>480); // minutos    
     foreach ($events1 as $event) {
         $event = (array) $event;
@@ -927,7 +924,7 @@ function wpbotwriter_generate_post($data){
     ));
     
     if ($post_id === 0) {
-        error_log('Error creating post');
+        //error_log('Error creating post');
         return false;
     }
 
@@ -985,7 +982,7 @@ function wpbotwriter_send1_data_to_server($data) {
         $data['post_length'] = $data['custom_post_length'];
     } 
 
-    echo 'Data to send1: <pre>' . print_r($data, true) . '</pre>';
+    //echo 'Data to send1: <pre>' . print_r($data, true) . '</pre>';
       
 
     $data["error"]= "";
@@ -1012,13 +1009,12 @@ function wpbotwriter_send1_data_to_server($data) {
     wpbotwritter_intentofase1_add($data["id"]);
 
     if (is_wp_error($response)) {
-        $error_message = $response->get_error_message();
-        echo "Error sending data to $remote_url: $error_message";
-        error_log("Error sending data to $remote_url: $error_message");        
+        $error_message = $response->get_error_message();        
+        //error_log("Error sending data to $remote_url: $error_message");        
         return false;
     } else {
         // Procesar la respuesta si la solicitud fue exitosa
-        echo 'Datos recibidos fase1: <pre>' . print_r($response, true) . '</pre>';
+        //echo 'Datos recibidos fase1: <pre>' . print_r($response, true) . '</pre>';
         if ($response['response']['code'] === 200) {
             // Procesar la respuesta si la solicitud fue exitosa
             $body = wp_remote_retrieve_body($response);
@@ -1034,13 +1030,13 @@ function wpbotwriter_send1_data_to_server($data) {
                 
                 $event["task_status"]="error";
                 wpbotwriter_logs_register($data, $data["id"]);                
-                error_log('Error sending data to the server');
+                //error_log('Error sending data to the server');
                 return false;
             }            
         } else {  // error          
             $event["task_status"]="error";
             wpbotwriter_logs_register($data, $data["id"]);            
-            error_log('Error sending data to the server');
+            //error_log('Error sending data to the server');
             return false;
         }         
     }
@@ -1055,7 +1051,7 @@ function wpbotwriter_send2_data_to_server($data) {
     $data["user_domainname"] = esc_url(get_site_url());
 
     
-    echo 'Data to send2: <pre>' . print_r($data, true) . '</pre>';
+    
 
     $remote_url =  'https://wpbotwriter.com/public/redis_api_finish.php';
             
@@ -1077,12 +1073,12 @@ function wpbotwriter_send2_data_to_server($data) {
     wpbotwritter_intentofase1_add($data["id"]);
     if (is_wp_error($response)) {
         $error_message = $response->get_error_message();
-        error_log("Error sending data to $remote_url: $error_message");
+        //error_log("Error sending data to $remote_url: $error_message");
         $data["error"]= "Error sending data " . $error_message;
         return false;
     } else {
         // Procesar la respuesta si la solicitud fue exitosa
-        echo 'Data recived2: <pre>' . print_r($response, true) . '</pre>';
+    
         if ($response['response']['code'] === 200) {
             // Procesar la respuesta si la solicitud fue exitosa
             $body = wp_remote_retrieve_body($response);
@@ -1140,13 +1136,11 @@ function wpbotwriter_send2_data_to_server($data) {
 function wpbotwritter_intentofase1_add($id_log) {
     global $wpdb;
     $table_name = $wpdb->prefix . 'wpbotwriter_logs';
-
-    // Incrementar el campo intentos
-    $updated = $wpdb->query(
-        $wpdb->prepare(
-            "UPDATE $table_name 
-             SET intentosfase1 = intentosfase1 + 1 
-             WHERE id = %d",
+    
+   // Incrementar el campo intentos
+   $updated = $wpdb->query(
+    $wpdb->prepare(
+        "UPDATE {$table_name} SET intentosfase1 = intentosfase1 + 1 WHERE id = %d",
             $id_log
         )
     );
@@ -1158,7 +1152,7 @@ function wpbotwritter_intentofase1_add($id_log) {
     // Obtener el nuevo valor de intentos
     $result = $wpdb->get_var(
         $wpdb->prepare(
-            "SELECT intentosfase1 FROM $table_name WHERE id = %d",
+            "SELECT intentosfase1 FROM {$table_name} WHERE id = %d",
             $id_log
         )
     );
@@ -1174,7 +1168,7 @@ function wpbotwritter_intentofase2_add($id_log) {
     // Incrementar el campo intentos
     $updated = $wpdb->query(
         $wpdb->prepare(
-            "UPDATE $table_name 
+            "UPDATE {$table_name}
              SET intentosfase2 = intentosfase2 + 1 
              WHERE id = %d",
             $id_log
@@ -1188,7 +1182,7 @@ function wpbotwritter_intentofase2_add($id_log) {
     // Obtener el nuevo valor de intentos
     $result = $wpdb->get_var(
         $wpdb->prepare(
-            "SELECT intentosfase2 FROM $table_name WHERE id = %d",
+            "SELECT intentosfase2 FROM {$table_name} WHERE id = %d",
             $id_log
         )
     );
@@ -1205,11 +1199,8 @@ function wpbotwriter_cambiar_status_ajax() {
 
     $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
     $nuevo_status = isset($_POST['status']) ? intval($_POST['status']) : 0;
-    // enviar al error log
-    error_log('Cambiar status');    
-    error_log('ID: ' . $id);
-    error_log('Status: ' . $nuevo_status);
-
+    
+    
 
     if ($id > 0) {
         global $wpdb;
@@ -1247,25 +1238,28 @@ function wpbotwriter_attach_image_to_post($post_id, $image_url, $post_title) {
         
 
         // Descargar la imagen y adjuntarla al artículo
-        if ($image_url && $post_id) {
-            echo "Descargando y adjuntando la imagen...<br>";
-            $image_data = file_get_contents($image_url);
+        if ($image_url && $post_id) {            
+            //$image_data = file_get_contents($image_url);
+            $image_data = wp_remote_retrieve_body(wp_remote_get($image_url));
             $upload_dir = wp_upload_dir();
             // $filename = al titulo del post slugificado
             $filename = sanitize_title($post_title) . '.jpg';
             
             if (wp_mkdir_p($upload_dir['path'])) {
-                $file = $upload_dir['path'] . '/' . $filename;
-                error_log('Directorio creado exitosamente: ' . $upload_dir['path']);
+                $file = $upload_dir['path'] . '/' . $filename;                
             } else {
-                $file = $upload_dir['basedir'] . '/' . $filename;
-                error_log('No se pudo crear el directorio, usando el directorio base: ' . $upload_dir['basedir']);
+                $file = $upload_dir['basedir'] . '/' . $filename;                
             }
             
-            if (file_put_contents($file, $image_data) !== false) {
-                error_log('Imagen guardada exitosamente en: ' . $file);
+            global $wp_filesystem;
+            if ( ! function_exists( 'WP_Filesystem' ) ) {
+                require_once ABSPATH . 'wp-admin/includes/file.php';
+            }
+            WP_Filesystem();
+            if ( $wp_filesystem->put_contents( $file, $image_data, FS_CHMOD_FILE ) ) {
+                //error_log('Imagen guardada exitosamente en: ' . $file);
             } else {
-                error_log('Error al guardar la imagen en: ' . $file);
+                //error_log('Error al guardar la imagen en: ' . $file);
             }
     
             $wp_filetype = wp_check_filetype($filename, null);

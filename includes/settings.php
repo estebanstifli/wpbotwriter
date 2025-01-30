@@ -20,11 +20,11 @@ function wpbotwriter_settings_page_handler() {
         
         // Actualiza las opciones en la base de datos
         $settings = array(                        
-            'wpbotwriter_ai_image_size' => isset($_POST['wpbotwriter_ai_image_size']) ? sanitize_text_field($_POST['wpbotwriter_ai_image_size']) : 'square_hd',            
-            'wpbotwriter_sslverify' => isset($_POST['wpbotwriter_sslverify']) ? sanitize_text_field($_POST['wpbotwriter_sslverify']) : "yes",
-            'wpbotwriter_email' => isset($_POST['wpbotwriter_email']) ? sanitize_text_field($_POST['wpbotwriter_email']) : get_option('admin_email'),
-            'wpbotwriter_api_key' => isset($_POST['wpbotwriter_api_key']) ? sanitize_text_field($_POST['wpbotwriter_api_key']) : '',            
-            'wpbotwriter_cron_active' => isset($_POST['wpbotwriter_cron_active']) ? sanitize_text_field($_POST['wpbotwriter_cron_active']) : '1',                    
+            'wpbotwriter_ai_image_size' => isset($_POST['wpbotwriter_ai_image_size']) ? sanitize_text_field(wp_unslash($_POST['wpbotwriter_ai_image_size'])) : 'square_hd',            
+            'wpbotwriter_sslverify' => isset($_POST['wpbotwriter_sslverify']) ? sanitize_text_field(wp_unslash($_POST['wpbotwriter_sslverify'])) : "yes",
+            'wpbotwriter_email' => isset($_POST['wpbotwriter_email']) ? sanitize_email(wp_unslash($_POST['wpbotwriter_email'])) : get_option('admin_email'),
+            'wpbotwriter_api_key' => isset($_POST['wpbotwriter_api_key']) ? sanitize_text_field(wp_unslash($_POST['wpbotwriter_api_key'])) : '',            
+            'wpbotwriter_cron_active' => isset($_POST['wpbotwriter_cron_active']) ? sanitize_text_field(wp_unslash($_POST['wpbotwriter_cron_active'])) : '1',                    
         );
 
         $settings["plan_id"]=0; // free plan
@@ -95,7 +95,7 @@ function wpbotwriter_settings_page_handler() {
         if (get_option('plan_id') == 0) {
             echo "<h3>Free Plan</h3>";
             $site_url = urlencode(get_site_url());
-            echo '<a href="https://wpbotwriter.com/info?user_domainname=' . $site_url . '" target="_blank" class="button-primary">Upgrade to Pro Plan</a> to get more features.';
+            echo '<a href="https://wpbotwriter.com" target="_blank" class="button-primary">Upgrade to Pro Plan</a> to get more features.';
         }
         else {
             echo "<h3>Pro Plan</h3>";
@@ -173,10 +173,10 @@ function wpbotwriter_settings_meta_box_handler() {
                value="<?php echo esc_attr(get_option('wpbotwriter_api_key')); ?>" 
                 style="width: 50%;">        
         <p>
-            <?php printf(
-                esc_html__('Modify the API Key if you subscribe to a payment plan, otherwise leave it as it is. If you need a new API Key, you can get it from %s.', 'wpbotwriter'),
-                '<a href="' . esc_url('https://wpbotwriter.com') . '" target="_blank">Wp BotWriter</a>'
-            ); ?>
+            <?php 
+            esc_html_e('Modify the API Key if you subscribe to a payment plan, otherwise leave it as it is. If you need a new API Key, you can get it from:', 'wpbotwriter');                
+            ?>
+            <a href="https://wpbotwriter.com" target="_blank">Wp BotWriter</a>
         </p>
     </div>    
     <br>

@@ -4,22 +4,19 @@ if (!class_exists('WP_List_Table')) {
 }
 
 function wpbotwriter_logs_page_handler() {
-    $timezone = get_option('timezone_string');
-    if (!$timezone) {
-        $timezone = 'UTC';
-    }
-    date_default_timezone_set($timezone);
-    
-
-    $current_time = current_time('mysql'); // Hora en formato MySQL (Y-m-d H:i:s)    
-    $current_timestamp = current_time('timestamp'); // Timestamp ajustado a la zona horaria del sitio
-    
-
-
 
     // Check if the user has the necessary capability
     if (!current_user_can('manage_options')) {
         return;
+    }
+
+    if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (isset($_POST['wpbotwriter_logs_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['wpbotwriter_logs_nonce'])), 'wpbotwriter_logs_action')
+        ) {
+            // The nonce is valid, continue execution
+        } else {
+            wp_die(esc_html__('Security check failed', 'wpbotwriter'));
+        }
     }
 
     // Instantiate the logs table class
@@ -28,8 +25,9 @@ function wpbotwriter_logs_page_handler() {
 
     // Display the page
     echo '<div class="wrap">';
-    echo '<h1>' . __('WPBotWriter Logs', 'wpbotwriter') . '</h1>';
+    echo '<h1>' . esc_html__('WPBotWriter Logs', 'wpbotwriter') . '</h1>';
     echo '<form method="post">';
+    wp_nonce_field('wpbotwriter_logs_action', 'wpbotwriter_logs_nonce');
     $logs_table->display();
     echo '</form>';
     echo '</div>';
@@ -75,7 +73,7 @@ class WPBotWriter_Logs_Table extends WP_List_Table {
         
     }
 
-    // haz una funcion para la columna id_post_published que muestre el link al post para editarlo si es 0 que muestre blanco    
+    // Create a function for the id_post_published column that shows the link to edit the post, if it is 0 show blank    
     function column_id_post_published($item){
         $id_post_published = $item['id_post_published'];
         if ($id_post_published == 0) {
@@ -90,29 +88,35 @@ class WPBotWriter_Logs_Table extends WP_List_Table {
     public function prepare_items() {
         global $wpdb;
         $table_name = $wpdb->prefix . 'wpbotwriter_logs';
-    
-        // Obtén los parámetros de ordenación
-        $orderby = !empty($_GET['orderby']) ? esc_sql($_GET['orderby']) : 'created_at';
-        $order = !empty($_GET['order']) ? esc_sql($_GET['order']) : 'desc';
-    
-        // Consulta con orden dinámico
-        $query = "SELECT * FROM $table_name ORDER BY $orderby $order";
-        $this->logs_data = $wpdb->get_results($query, ARRAY_A);
-    
-        // Configurar paginación
+        // default sorting parameters
+        $order='desc';
+        $orderby='created_at';
+
+        // check if recieved orderby and order parameters
+        if (isset($_GET['orderby']) && isset($_GET['order'])) {
+            $orderby = sanitize_text_field(wp_unslash($_GET['orderby']));
+            $order = sanitize_text_field(wp_unslash($_GET['order']));
+        }
+
+        
+        
+        $this->logs_data = $wpdb->get_results("SELECT * FROM " . $table_name . " ORDER BY $orderby $order", ARRAY_A);
+        
+
+        // Set up pagination
         $per_page = 10;
         $current_page = $this->get_pagenum();
         $total_items = count($this->logs_data);
-    
+        
         $this->logs_data = array_slice($this->logs_data, (($current_page - 1) * $per_page), $per_page);
-    
+        
         $this->set_pagination_args(array(
             'total_items' => $total_items,
             'per_page'    => $per_page,
             'total_pages' => ceil($total_items / $per_page),
         ));
-    
-        // Configurar encabezados de columna
+        
+        // Set up column headers
         $this->_column_headers = array($this->get_columns(), array(), $this->get_sortable_columns());
         $this->items = $this->logs_data;
     }
@@ -130,24 +134,24 @@ class WPBotWriter_Logs_Table extends WP_List_Table {
     }
 
     public function column_task_status($item) {        
-        // 4 casos: inqueue, pending, completed, error 
+        // 4 cases: inqueue, pending, completed, error 
         $task_status = $item['task_status'];        
-        $intento_tiempo = array(0=>0,1=>0,2=>5,3=>10,4=>30,5=>60,6=>120,7=>240,8=>480); // minutos
+        $intento_tiempo = array(0=>0,1=>0,2=>5,3=>10,4=>30,5=>60,6=>120,7=>240,8=>480); // minutes
         $intentosfase1 = $item["intentosfase1"];
                     
-            // si es error mostrar en rojo y mostrar que se reintentará en tiempo * intentos
+            // if it is error show in red and show that it will retry in time * attempts
             if ($task_status == 'error') {            
                 $id_task_server = $item['id_task_server'];
                 $txt= '<span style="color:red;">Error (id server:' . $id_task_server . ')</span>';
                 if ($item["error"]!='') {
                     $txt.= '<br>' . esc_html($item["error"]) . "<br>";
                 }
-                if ($intentosfase1 < 8) {  // son los que lleva                    
-                    $tiempo = $intento_tiempo[$intentosfase1+1]; // next intento
+                if ($intentosfase1 < 8) {  // these are the ones it has taken                    
+                    $tiempo = $intento_tiempo[$intentosfase1+1]; // next attempt
                     $created_at = strtotime($item["created_at"]);
                     $tiempo_siguiente_intento = $created_at + $tiempo*60;            
-                    $txt.= '<br>Intento ' . $intentosfase1 . ' de 8';
-                    $txt.= '<br>Will retry at ' . date('Y-m-d H:i:s', $tiempo_siguiente_intento);                
+                    $txt.= '<br>Attempt ' . $intentosfase1 . ' of 8';
+                    $txt.= '<br>Will retry at ' . gmdate('Y-m-d H:i:s', $tiempo_siguiente_intento);                
                 }                                
             } else {
                 $txt=esc_html($task_status);
@@ -158,10 +162,10 @@ class WPBotWriter_Logs_Table extends WP_List_Table {
     }
 
     public function column_aigenerated_image($item) {
-        // chek if the post if published
+        // check if the post is published
         $id_post_published = $item['id_post_published'];
         if ($id_post_published != 0) {
-            // obtener la url de la imagen del post
+            // get the post image url
             $post_thumbnail_id = get_post_thumbnail_id($id_post_published);
             $post_thumbnail_url = wp_get_attachment_image_src($post_thumbnail_id, 'thumbnail');
             if ($post_thumbnail_url) {
@@ -178,7 +182,7 @@ class WPBotWriter_Logs_Table extends WP_List_Table {
     }
 
     public function no_items() {
-        _e('No logs found.', 'wpbotwriter');
+        esc_html__('No logs found.', 'wpbotwriter');
     }
 
     public function get_sortable_columns() {
@@ -188,38 +192,23 @@ class WPBotWriter_Logs_Table extends WP_List_Table {
         );
     }
 
-    public function display_rows() {
-        foreach ($this->items as $item) {
-            echo '<tr>';
-            foreach ($this->get_columns() as $column_name => $column_display_name) {
-                if (method_exists($this, 'column_' . $column_name)) {
-                    echo '<td>' . $this->{'column_' . $column_name}($item) . '</td>';
-                } else {
-                    echo '<td>' . $this->column_default($item, $column_name) . '</td>';
-                }
-            }
-            echo '</tr>';
-        }
-    }
+    
 }
 
 
-// crea una funcion que devuelva todos los links de un id_task maximo 50
+
 function wpbotwritter_get_logs_links($id_task) {
     global $wpdb;
-    $table_name = $wpdb->prefix . 'wpbotwriter_logs'; 
+     
 
-    $query = "SELECT link_post_original FROM $table_name WHERE id_task = $id_task order by id desc limit 50";
-    echo "<br>query: " . $query;
-    $links = $wpdb->get_results($query, ARRAY_A);    
+    $links = $wpdb->get_results($wpdb->prepare("SELECT link_post_original FROM {$wpdb->prefix}wpbotwriter_logs WHERE id_task = %d ORDER BY id DESC LIMIT 50", $id_task), ARRAY_A);
     $links_array = [];
     if (empty($links)) {
         return false;
     } else {
         foreach ($links as $link) {
             if ($link['link_post_original'] != '') {
-                $links_array[] = $link['link_post_original'];
-                echo "<br>link_post_original en la bd: " . $link['link_post_original'];                
+                $links_array[] = $link['link_post_original'];    
             }
         }
     }
@@ -230,11 +219,9 @@ function wpbotwritter_get_logs_links($id_task) {
             
 function wpbotwritter_get_logs_titles($id_task) {
     global $wpdb;
-    $table_name = $wpdb->prefix . 'wpbotwriter_logs';
+    
 
-    $query = "SELECT aigenerated_title FROM $table_name WHERE id_task = $id_task order by id desc limit 50";
-    //echo "<br>query: " . $query;
-    $results = $wpdb->get_results($query, ARRAY_A);    
+    $results = $wpdb->get_results($wpdb->prepare("SELECT aigenerated_title FROM {$wpdb->prefix}wpbotwriter_logs WHERE id_task = %d ORDER BY id DESC LIMIT 50", $id_task), ARRAY_A);
     $titles_array = [];
     if (empty($results)) {
         return false;
@@ -242,28 +229,28 @@ function wpbotwritter_get_logs_titles($id_task) {
         foreach ($results as $result) {
             if ($result['aigenerated_title'] != '') {
                 $titles_array[] = $result['aigenerated_title'];
-                //echo "<br>titulo en la bd: " . $result['aigenerated_title'];
+                //echo "<br>title in the db: " . $result['aigenerated_title'];
             }
         }
     }
     return $titles_array; 
     
 }
+ 
 
 
 
-
-// Registra un log en la tabla wpbotwriter_logs (inserta o actualiza)
+// Register a log in the wpbotwriter_logs table (insert or update)
 function wpbotwriter_logs_register($data, $id = null) {
     global $wpdb;
     $table_name = $wpdb->prefix . 'wpbotwriter_logs';
 
-    // Validar que $data es un array
+    // Validate that $data is an array
     if (!is_array($data)) {
-        return false; // O lanzar una excepción según sea necesario
+        return false; // Or throw an exception as needed
     }
 
-    // Lista de claves permitidas
+    // List of allowed keys
     $allowed_keys = array(
         'id_task',
         'id_task_server',
@@ -305,7 +292,7 @@ function wpbotwriter_logs_register($data, $id = null) {
         'intentosfase1'
     );
 
-    // Crear el array con solo los valores existentes en $data
+    // Create the array with only the existing values in $data
     $insert_data = array();
     foreach ($allowed_keys as $key) {
         if (isset($data[$key])) {
@@ -314,32 +301,31 @@ function wpbotwriter_logs_register($data, $id = null) {
     }
 
     if ($id) {
-        // Actualizar el registro existente
+        // Update the existing record
         $where = array('id' => $id);
         $updated = $wpdb->update($table_name, $insert_data, $where);
 
-        // Retornar el resultado de la actualización
+        // Return the result of the update
         return $updated !== false ? $id : false;
     } else {
-        // Insertar un nuevo registro
-        // Añadir la fecha de creación
+        // Insert a new record
+        // Add the creation date
         $current_time = current_time('mysql');
         $insert_data['created_at'] = $current_time;
 
         $wpdb->insert($table_name, $insert_data);
 
-        // Retornar el ID del nuevo registro
+        // Return the ID of the new record
         return $wpdb->insert_id;
     }
 }
 
-// funcion que dado un id devuleva un array con los datos de un log
+// Function that given an id returns an array with the data of a log
 function wpbotwriter_logs_get($id) {
     global $wpdb;
     $table_name = $wpdb->prefix . 'wpbotwriter_logs';
 
-    $query = "SELECT * FROM $table_name WHERE id = $id";
-    $log = $wpdb->get_row($query, ARRAY_A);
+    $log = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id), ARRAY_A);
 
     return $log;
 }

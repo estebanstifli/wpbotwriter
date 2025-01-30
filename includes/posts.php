@@ -1,67 +1,48 @@
 <?php
 function wpbotwriter_automatic_posts_page()
 {
-    global $wpdb;
- 
+
+  
     $table = new wpbotwriter_tasks_Table();
-    
     $table->prepare_items();
-
-    $message = '';
+    $message = '';    
     if ('delete_all' === $table->current_action()) {
-
-      // Good idea to make sure things are set before using them
-      $deleted_items_ids = isset($_POST['id']) ? array_map('absint', (array)$_POST['id']) : array();
-  
-      // Sanitize the array using array_map and absint
-      $deleted_items_ids = array_map('absint', $deleted_items_ids);
-  
-      // Validate the IDs, make sure they are positive integers
-      $deleted_items_ids = array_filter($deleted_items_ids, create_function('$id', 'return $id > 0;'));
-  
-      $message = 'Items deleted: ' . count($deleted_items_ids);
-  
-      // Escape the message before outputting it
-      $message = esc_html($message);
-   }
-  
-
-     if ('delete' === $table->current_action()) {
-        // Sanitize and escape the 'id' parameter
-        $deleted_item_id = isset($_REQUEST['id']) ? absint($_REQUEST['id']) : 0;
-        
-        // Escape the output and use the sprintf function for better readability
-        $message = 'Item deleted : '  .  $deleted_item_id;
-      }
-  
-    
-    ?>
-<div class="wrap">
-
-    <div class="icon32 icon32-posts-post" id="icon-edit"><br></div>
-    <h2><?php esc_html_e('Tasks', 'wpbotwriter'); ?> <a class="add-new-h2"
-        href="<?php echo esc_url(get_admin_url(get_current_blog_id(), 'admin.php?page=wpbotwriter_automatic_post_new')); ?>"><?php esc_html_e('Add new', 'wpbotwriter'); ?></a>
-    </h2>
-    
-    <?php 
-    if($message && !empty($message)){
-      echo '<div class="updated below-h2" id="message"><p>' . esc_html($message) . '</p></div>'; 
-
+            $message = 'Items deleted';
     }
+    if ('delete' === $table->current_action()) {            
+            $message = 'Item deleted';
+    }
+
+    $message = esc_html($message);
     ?>
 
-    <form id="contacts-table" method="POST">
+    <div class="wrap">
+        <div class="icon32 icon32-posts-post" id="icon-edit"><br></div>
+        <h2>
+            <?php esc_html_e('Tasks', 'wpbotwriter'); ?>
+            <a class="add-new-h2"
+                href="<?php echo esc_url(get_admin_url(get_current_blog_id(), 'admin.php?page=wpbotwriter_automatic_post_new')); ?>">
+                <?php esc_html_e('Add new', 'wpbotwriter'); ?>
+            </a>
+        </h2>
+
+        
+
+        <?php if (!empty($message)) : ?>
+            <div class="updated below-h2" id="message"><p><?php echo esc_html($message); ?></p></div>
+        <?php endif; ?>
+
+        <form id="contacts-table" method="POST">
+            <?php
+            wp_nonce_field('wpbotwriter_tasks_nonce_action', 'wpbotwriter_tasks_nonce');            
+            $page_value = isset($_REQUEST['page']) ? sanitize_text_field(wp_unslash($_REQUEST['page'])) : '';
+            ?>
+            <input type="hidden" name="page" value="<?php echo esc_html($page_value); ?>"/>
+            <?php $table->display(); ?>
+        </form>
+    </div>
+
     <?php
-    // Sanitize and escape the 'page' parameter
-    $page_value = isset($_REQUEST['page']) ? sanitize_text_field($_REQUEST['page']) : '';
-    ?>
-    <input type="hidden" name="page" value="<?php echo esc_html($page_value); ?>"/>
-    <?php $table->display() ?>
-</form>
-
-
-</div>
-<?php
 }
 
 
@@ -123,58 +104,56 @@ function wpbotwriter_form_page_handler(){
 
 
     if ( isset($_REQUEST['nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_REQUEST['nonce'])), basename(__FILE__))) {
-        $days = isset($_POST['days']) ? implode(",", array_map('sanitize_text_field', $_POST['days'])) : "";
-        $times_per_day = intval($_POST['times_per_day']);
+      
+        $days = isset($_POST['days']) ? implode(",", array_map('sanitize_text_field', wp_unslash($_POST['days']))) : "";
+        $times_per_day = isset($_POST['times_per_day']) ? intval(wp_unslash($_POST['times_per_day'])) : 1;
 
         
         // Process only the specific values needed
         $item = array(
-          'id'                => isset($_POST['id']) ? intval($_POST['id']) : 0,
+            'id'                => isset($_POST['id']) ? intval(wp_unslash($_POST['id'])) : 0,
 
-          'task_name'         => sanitize_text_field($_POST['task_name']),
-          'post_status'       => sanitize_text_field($_POST['post_status']),
-          'days'              => $days,
-          'times_per_day'     => $times_per_day,                    
-          'writer'            => sanitize_text_field($_POST['writer']),
-          'narration'         => sanitize_text_field($_POST['narration']),
-          'post_length'       => sanitize_text_field($_POST['post_length']),
-          'custom_post_length'=> sanitize_text_field($_POST['custom_post_length']),
-          'custom_style'      => sanitize_text_field($_POST['custom_style']),
-          'post_language'     => sanitize_text_field($_POST['post_language']),
+            'task_name'         => isset($_POST['task_name']) ? sanitize_text_field(wp_unslash($_POST['task_name'])) : '',
+            'post_status'       => isset($_POST['post_status']) ? sanitize_text_field(wp_unslash($_POST['post_status'])) : '',
+            'days'              => $days,
+            'times_per_day'     => $times_per_day,                    
+            'writer'            => isset($_POST['writer']) ? sanitize_text_field(wp_unslash($_POST['writer'])) : '',
+            'narration'         => isset($_POST['narration']) ? sanitize_text_field(wp_unslash($_POST['narration'])) : '',
+            'post_length'       => isset($_POST['post_length']) ? sanitize_text_field(wp_unslash($_POST['post_length'])) : '',
+            'custom_post_length'=> isset($_POST['custom_post_length']) ? sanitize_text_field(wp_unslash($_POST['custom_post_length'])) : '',
+            'custom_style'      => isset($_POST['custom_style']) ? sanitize_text_field(wp_unslash($_POST['custom_style'])) : '',
+            'post_language'     => isset($_POST['post_language']) ? sanitize_text_field(wp_unslash($_POST['post_language'])) : '',
 
-          'website_type'      => sanitize_text_field($_POST['website_type']),
-          'website_name'      => '',
-          'domain_name'       => sanitize_url($_POST['domain_name']),
-          'category_id'       => isset($_POST['category_id']) ? array_map('intval', $_POST['category_id']) : array(),
-          'website_category_id'=> isset($_POST['website_category_id']) ? array_map('intval', $_POST['website_category_id']) : array(),
-          'website_category_name'=> sanitize_text_field($_POST['website_category_name']),
-          'aigenerated_title'  => '',
-          'aigenerated_content'=> '',
-          'aigenerated_tags'   => '',
-          'aigenerated_image'  => '',
-          'post_count'         => 5,
-          'post_order'         => '',
-          'title_prompt'      => '',
+            'website_type'      => isset($_POST['website_type']) ? sanitize_text_field(wp_unslash($_POST['website_type'])) : '',
+            'website_name'      => '',
+            'domain_name'       => isset($_POST['domain_name']) ? sanitize_url(wp_unslash($_POST['domain_name'])) : '',
+            'category_id'       => isset($_POST['category_id']) ? array_map('intval', wp_unslash($_POST['category_id'])) : array(),
+            'website_category_id'=> isset($_POST['website_category_id']) ? array_map('intval', wp_unslash($_POST['website_category_id'])) : array(),
+            'website_category_name'=> isset($_POST['website_category_name']) ? sanitize_text_field(wp_unslash($_POST['website_category_name'])) : '',
+            'aigenerated_title'  => '',
+            'aigenerated_content'=> '',
+            'aigenerated_tags'   => '',
+            'aigenerated_image'  => '',
+            'post_count'         => 5,
+            'post_order'         => '',
+            'title_prompt'      => '',
 
-          'content_prompt' => '',
-          
-          'tags_prompt'       => '',
-          'image_prompt'      => '',
-          'image_generating_status' => '',
-          
-          'author_selection'  => sanitize_text_field($_POST['author_selection']),
+            'content_prompt' => '',
+            
+            'tags_prompt'       => '',
+            'image_prompt'      => '',
+            'image_generating_status' => '',
+            
+            'author_selection'  => isset($_POST['author_selection']) ? sanitize_text_field(wp_unslash($_POST['author_selection'])) : '',
 
-          'news_keyword'      => sanitize_text_field($_POST['news_keyword']),
-          'news_country'      => sanitize_text_field($_POST['news_country']),
-          'news_language'     => sanitize_text_field($_POST['news_language']),
-          'news_time_published' => sanitize_text_field($_POST['news_time_published']),
-          'news_source'       => sanitize_text_field($_POST['news_source']),
+            'news_keyword'      => isset($_POST['news_keyword']) ? sanitize_text_field(wp_unslash($_POST['news_keyword'])) : '',
+            'news_country'      => isset($_POST['news_country']) ? sanitize_text_field(wp_unslash($_POST['news_country'])) : '',
+            'news_language'     => isset($_POST['news_language']) ? sanitize_text_field(wp_unslash($_POST['news_language'])) : '',
+            'news_time_published' => isset($_POST['news_time_published']) ? sanitize_text_field(wp_unslash($_POST['news_time_published'])) : '',
+            'news_source'       => isset($_POST['news_source']) ? sanitize_text_field(wp_unslash($_POST['news_source'])) : '',
 
-          'rss_source'        => sanitize_text_field($_POST['rss_source']),
-          'ai_keywords'       => sanitize_text_field($_POST['ai_keywords'])
-          
-
-
+            'rss_source'        => isset($_POST['rss_source']) ? sanitize_text_field(wp_unslash($_POST['rss_source'])) : '',
+            'ai_keywords'       => isset($_POST['ai_keywords']) ? sanitize_text_field(wp_unslash($_POST['ai_keywords'])) : ''
 
         );
         //Convert category_id array to text
@@ -205,7 +184,7 @@ function wpbotwriter_form_page_handler(){
                       ?>
                         <script>
                             setTimeout(function() {
-                                window.location.href = "<?php echo admin_url('admin.php?page=wpbotwriter_automatic_posts'); ?>";
+                                window.location.href = "<?php echo esc_url(admin_url('admin.php?page=wpbotwriter_automatic_posts')); ?>";
                             }, 3000); 
                         </script>                      
                       <?php
@@ -224,7 +203,8 @@ function wpbotwriter_form_page_handler(){
                       ?>
                         <script>
                             setTimeout(function() {
-                                window.location.href = "<?php echo admin_url('admin.php?page=wpbotwriter_automatic_posts'); ?>";
+                                window.location.href = "<?php echo esc_url(admin_url('admin.php?page=wpbotwriter_automatic_posts')); ?>";
+                                
                             }, 3000); 
                         </script>                      
                       <?php
@@ -234,13 +214,13 @@ function wpbotwriter_form_page_handler(){
                       ?>
                         <script>
                             setTimeout(function() {
-                                window.location.href = "<?php echo admin_url('admin.php?page=wpbotwriter_automatic_posts'); ?>";
+                                window.location.href = "<?php echo esc_url(admin_url('admin.php?page=wpbotwriter_automatic_posts')); ?>";                                
                             }, 3000); 
                         </script>                      
                       <?php
                     }
                 } else {
-                      $notice = __('There was an error while updating item: ' . $wpdb->last_error, 'wpbotwriter');
+                        $notice = __('There was an error while updating item: ', 'wpbotwriter') . $wpdb->last_error;
                 }
               }
           } else {
@@ -253,7 +233,7 @@ function wpbotwriter_form_page_handler(){
       $item = $default;
       if (isset($_REQUEST['id'])) {
           $sanitized_id = absint($_REQUEST['id']); // Sanitize as an integer
-          $item = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $sanitized_id), ARRAY_A);
+            $item = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$table_name} WHERE id = %d", $sanitized_id), ARRAY_A);
           if (!$item) {
               $item = $default;
               $notice = __('Item not found', 'wpbotwriter');
@@ -478,7 +458,7 @@ function wpbotwriter_post_form_meta_box_handler($item)
         ];
         foreach ($styles as $value => $name) {
             $selected = ($item["narration"] == $value) ? 'selected' : '';
-            echo "<option value='$value' $selected>$name</option>";
+            echo "<option value='" . esc_attr($value) . "' " . esc_attr($selected) . ">" . esc_html($name) . "</option>";
         }
         ?>
         </select>
@@ -539,20 +519,21 @@ function wpbotwriter_post_form_meta_box_handler($item)
     </div>
 
     <div class="col-md-6">
-            <label class="form-label"><?php _e('Days of the Week:', 'wpbotwriter'); ?></label><br>
+            <label class="form-label"><?php esc_html_e('Days of the Week:', 'wpbotwriter'); ?></label><br>
             <?php 
             $days_of_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-            foreach ($days_of_week as $day) {
+            foreach ($days_of_week as $day) {                                
                 $is_checked = in_array($day, $selected_days) ? 'checked' : '';
-                echo "<input type='checkbox' name='days[]' value='$day' $is_checked> " . __($day, 'wpbotwriter') . "<br>";
+                echo "<input type='checkbox' name='days[]' value='" . esc_attr($day) . "' " . esc_attr($is_checked) . "> " . esc_html($day) . "<br>";
+              
             }
             ?>
             <p class="form-text">Select the days on which you want to write and publish.</p>            
     </div>
 
     <div class="col-md-6">
-            <label  class="form-label"><?php _e('Post per Day:', 'wpbotwriter'); ?></label>
-            <input type="number" name="times_per_day" min="1" value="<?php echo $times_per_day ?>" required>
+            <label  class="form-label"><?php esc_html_e('Post per Day:', 'wpbotwriter'); ?></label>
+            <input type="number" name="times_per_day" min="1" value="<?php echo esc_attr($times_per_day); ?>" required>
     </div>
     <br>
     <div class="col-md-6">
@@ -598,7 +579,7 @@ function wpbotwriter_post_form_meta_box_handler($item)
                 <?php
                     foreach ($wpbotwriter_languages as $code => $name) {                        
                         $selected = ($item['post_language'] == $code) ? 'selected' : '';    
-                        echo "<option value='" . esc_attr($code) . "' $selected>" . esc_html($name) . "</option>";
+                        echo "<option value='" . esc_attr($code) . "' " . esc_attr($selected) . " >" . esc_html($name) . "</option>";
                     }
                 ?>
             </select>
@@ -760,7 +741,7 @@ $default_language_code = substr($locale, 0, 2); // Obtiene el código del idioma
         <?php
         foreach ($wpbotwriter_countries as $code => $name) {
             $selected = ($item['news_country'] == $code) ? 'selected' : (($code == strtolower($default_country_code) && empty($item['news_country'])) ? 'selected' : '');            
-            echo "<option value='$code' $selected>$name</option>";
+            echo "<option value='" . esc_attr($code) . "' " . esc_attr($selected) . " >" . esc_html($name) . "</option>";
         }
         ?>
     </select>
@@ -776,7 +757,8 @@ $default_language_code = substr($locale, 0, 2); // Obtiene el código del idioma
         
         foreach ($wpbotwriter_languages as $code => $name) {
           $selected = ($item['news_language'] == $code) ? 'selected' : (($code == strtolower($default_language_code) && empty($item['news_language'])) ? 'selected' : '');
-          echo "<option value='" . esc_attr($code) . "' $selected>" . esc_html($name) . "</option>";
+          echo "<option value='" . esc_attr($code) . "' " . esc_attr($selected) . " >" . esc_html($name) . "</option>";
+          
         }
 
         ?>
@@ -798,7 +780,9 @@ $default_language_code = substr($locale, 0, 2); // Obtiene el código del idioma
 
         foreach ($time_options as $value => $label) {
             $selected = ($item['news_time_published'] == $value) ? 'selected' : '';
-            echo "<option value='$value' $selected>$label</option>";
+            
+            echo "<option value='" . esc_attr($value) . "' " . esc_attr($selected) . " >" . esc_html($label) . "</option>";
+
         }
         ?> 
     </select>
@@ -852,7 +836,7 @@ $default_language_code = substr($locale, 0, 2); // Obtiene el código del idioma
 <!-- Custom Length Input -->
 <div class="col-md-6" id="customLengthInput" style="display: <?php echo (!in_array($item['post_length'], [400, 800, 1600])) ? 'block' : 'none'; ?>;">
   <label class="form-label">Custom Length (max 4000):</label>
-  <input id="custom_post_length"  name="custom_post_length" type="number" class="form-control" value="<?php echo $item['custom_post_length'] ?>" onchange="updatePostLength()">
+  <input id="custom_post_length"  name="custom_post_length" type="number" class="form-control" value="<?php echo esc_html($item['custom_post_length']) ?>" onchange="updatePostLength()">
   <p class="form-text">Enter the number of words you want the post to have.</p>
 </div>
 <br>

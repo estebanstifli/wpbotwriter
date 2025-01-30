@@ -1,7 +1,7 @@
 @echo off
 
 :: Define la nueva versión
-set VERSION=1.2.6
+set VERSION=1.2.7
 
 :: Ruta al archivo readme.txt
 set README_PATH=readme.txt

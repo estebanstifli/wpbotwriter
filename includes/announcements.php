@@ -1,21 +1,20 @@
 <?php
 
-// Agregar una acción al hook 'admin_notices' para ejecutar nuestra función
+// Add an action to the 'admin_notices' hook to execute our function
 add_action('admin_notices', 'wpbotwriter_create_alert');
 
-// Función para crear alertas administrativas en el panel de WordPress
+// Function to create admin alerts in the WordPress dashboard
 function wpbotwriter_create_alert() {
-    // Obtener las alertas almacenadas en las opciones de WordPress
+    // Get the alerts stored in WordPress options
     $alerts = get_option('wpbotwriter_alerts');
 
-    // Obtener la configuración del plugin
+    // Get the plugin settings
     $settings = get_option('wpbotwriter_settings');
 
-    // Deserializar la configuración si no es un array
-    $settings = $settings ? unserialize($settings) : array(); // Usar array() para PHP 5
+    // Unserialize the settings if they are not an array
+    $settings = $settings ? unserialize($settings) : array(); // Use array() for PHP 5
 
-   
-    $announcements = get_option('wpbotwriter_announcements'); // Anuncios generales
+    $announcements = get_option('wpbotwriter_announcements'); // General announcements
     $has_announcement = false;
     foreach ($announcements as $announcement_id => $announcement) {                
         if (isset($announcement['active']) && $announcement['active'] == "1") {
@@ -23,18 +22,16 @@ function wpbotwriter_create_alert() {
         }
     }
 
-    
-    // Mostrar las alertas o anuncios si existen
+    // Display the alerts or announcements if they exist
     if ($has_announcement) {
         echo '<div class="notice notice-info is-dismissible">'; 
         echo '<p><strong>Wp BotWriter Announcement:</strong></p>';
- 
-        // Mostrar alertas generales
+
+        // Display general alerts
         if (!empty($alerts)) {
             echo '<p>' . esc_html($alerts) . '</p>';
         }
 
-        
         if (!empty($announcements)) {
             foreach ($announcements as $announcement_id => $announcement) {                
                 if (isset($announcement['active']) && $announcement['active'] == "1") {
@@ -44,51 +41,39 @@ function wpbotwriter_create_alert() {
             }
         }
 
-        // Botón para mejorar la membresía
-        echo '<p><a href="https://wpbotwriter.com" target="_blank" class="button button-primary">Upgrade Membership</a></p>';
+        // Button to upgrade membership 
+        echo '<p><a href="' . esc_url('https://wpbotwriter.com') . '" target="_blank" class="button button-primary">' . esc_html__('Upgrade Membership', 'wpbotwriter') . '</a></p>';
         echo '</div>';
 
-        // Añadir código JavaScript para manejar el evento de "Dismiss"
+        // Add JavaScript code to handle the "Dismiss" event
         echo '<script type="text/javascript">
             jQuery(document).on("click", ".dismiss-announcement", function() {
                 var announcement_id = jQuery(this).data("announcement-id");
 
                 var data = {
                     action: "wpbotwriter_dismiss_announcement",
-                    security: "' . wp_create_nonce("wpbotwriter_dismiss_nonce") . '",
+                    security: "' . esc_js(wp_create_nonce("wpbotwriter_dismiss_nonce")) . '",
                     announcement_id: announcement_id
                 };
                 console.log(data);
 
                 jQuery.post(ajaxurl, data, function(response) {
                     if(response.success) {
-                        location.reload(); // Recargar la página después de ocultar el anuncio
+                        location.reload(); // Reload the page after hiding the announcement
                     }
                 });
             });
         </script>';
     }
-
-    
-    /*
-    if (empty($settings['api_email']) || empty($settings['api_key'])) {
-        echo '<div class="notice notice-error is-dismissible">';
-        echo '<p><strong>wpbotwriter Setup Required</strong></p>';
-        echo '<p>wpbotwriter no está configurado correctamente. Para usar este plugin, necesitas completar el proceso de configuración.</p>';
-        echo '<p>Si no completas la configuración, wpbotwriter no funcionará correctamente.</p>';
-        echo '<p><a href="admin.php?page=wpbotwriter-setup" class="button button-primary">Go to Setup</a></p>';
-        echo '</div>';
-    }
-    */
 }
 
 
-// Función que maneja la solicitud AJAX
+
 function wpbotwriter_dismiss_announcement() {
   check_ajax_referer('wpbotwriter_dismiss_nonce', 'security');
   
   if (isset($_POST['announcement_id'])) {
-      $announcement_id = sanitize_text_field($_POST['announcement_id']);
+      $announcement_id = sanitize_text_field(wp_unslash($_POST['announcement_id']));
       $announcements = get_option('wpbotwriter_announcements'); 
 
         if (isset($announcements[$announcement_id])) {
@@ -105,10 +90,9 @@ add_action('wp_ajax_wpbotwriter_dismiss_announcement', 'wpbotwriter_dismiss_anno
 
 
 
-
 function wpbotwriter_announcements_add($title, $message) {    
     $announcements = get_option('wpbotwriter_announcements', []);
-    // comprobar que no exista ya el anuncio
+
     foreach ($announcements as $announcement) {
         if ($announcement['title'] == $title && $announcement['message'] == $message && $announcement['active'] == 1) {
             return;
