@@ -35,6 +35,6 @@ Yes, you can configure certain parameters to guide the content creation process.
 
 == Changelog ==
 
-= 1.2.7 =
+= 1.2.6 =
 * Initial version of the plugin
 

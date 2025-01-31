@@ -1,9 +1,9 @@
 <?php
-function wpbotwriter_automatic_posts_page()
-{
+function botwriter_automatic_posts_page()
+{  
 
   
-    $table = new wpbotwriter_tasks_Table();
+    $table = new botwriter_tasks_Table();
     $table->prepare_items();
     $message = '';    
     if ('delete_all' === $table->current_action()) {
@@ -19,10 +19,10 @@ function wpbotwriter_automatic_posts_page()
     <div class="wrap">
         <div class="icon32 icon32-posts-post" id="icon-edit"><br></div>
         <h2>
-            <?php esc_html_e('Tasks', 'wpbotwriter'); ?>
+            <?php esc_html_e('Tasks', 'botwriter'); ?>
             <a class="add-new-h2"
-                href="<?php echo esc_url(get_admin_url(get_current_blog_id(), 'admin.php?page=wpbotwriter_automatic_post_new')); ?>">
-                <?php esc_html_e('Add new', 'wpbotwriter'); ?>
+                href="<?php echo esc_url(get_admin_url(get_current_blog_id(), 'admin.php?page=botwriter_automatic_post_new')); ?>">
+                <?php esc_html_e('Add new', 'botwriter'); ?>
             </a>
         </h2>
 
@@ -34,7 +34,7 @@ function wpbotwriter_automatic_posts_page()
 
         <form id="contacts-table" method="POST">
             <?php
-            wp_nonce_field('wpbotwriter_tasks_nonce_action', 'wpbotwriter_tasks_nonce');            
+            wp_nonce_field('botwriter_tasks_nonce_action', 'botwriter_tasks_nonce');            
             $page_value = isset($_REQUEST['page']) ? sanitize_text_field(wp_unslash($_REQUEST['page'])) : '';
             ?>
             <input type="hidden" name="page" value="<?php echo esc_html($page_value); ?>"/>
@@ -46,10 +46,10 @@ function wpbotwriter_automatic_posts_page()
 }
 
 
-function wpbotwriter_form_page_handler(){
+function botwriter_form_page_handler(){
   
     global $wpdb;
-    $table_name = $wpdb->prefix . 'wpbotwriter_tasks'; 
+    $table_name = $wpdb->prefix . 'botwriter_tasks'; 
 
     $message = '';
     $notice = '';
@@ -104,7 +104,7 @@ function wpbotwriter_form_page_handler(){
 
 
     if ( isset($_REQUEST['nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_REQUEST['nonce'])), basename(__FILE__))) {
-      
+
         $days = isset($_POST['days']) ? implode(",", array_map('sanitize_text_field', wp_unslash($_POST['days']))) : "";
         $times_per_day = isset($_POST['times_per_day']) ? intval(wp_unslash($_POST['times_per_day'])) : 1;
 
@@ -167,7 +167,7 @@ function wpbotwriter_form_page_handler(){
          $item['website_category_id'] = $website_category_ids;
           
 
-          $item_valid = wpbotwriter_validate_website($item);
+          $item_valid = botwriter_validate_website($item);
           if ($item_valid === true) {
 
         
@@ -180,18 +180,18 @@ function wpbotwriter_form_page_handler(){
 
                   $item['id'] = $wpdb->insert_id;
                   if ($result) {
-                      $message = __('New task was successfully saved!', 'wpbotwriter');
+                      $message = __('New task was successfully saved!', 'botwriter');
                       ?>
                         <script>
                             setTimeout(function() {
-                                window.location.href = "<?php echo esc_url(admin_url('admin.php?page=wpbotwriter_automatic_posts')); ?>";
+                                window.location.href = "<?php echo esc_url(admin_url('admin.php?page=botwriter_automatic_posts')); ?>";
                             }, 3000); 
                         </script>                      
                       <?php
                       
                       
                   } else {
-                      $notice = __('There was an error while saving item', 'wpbotwriter');
+                      $notice = __('There was an error while saving item', 'botwriter');
                   }
               } else {
                   $result = $wpdb->update($table_name, $item, array('id' => $item['id']));
@@ -199,28 +199,28 @@ function wpbotwriter_form_page_handler(){
         
                if ($result !== false) {
                     if ($result === 0) {
-                      $message = __('No changes were made, but the update was successful.', 'wpbotwriter');                                                                  
+                      $message = __('No changes were made, but the update was successful.', 'botwriter');                                                                  
                       ?>
                         <script>
                             setTimeout(function() {
-                                window.location.href = "<?php echo esc_url(admin_url('admin.php?page=wpbotwriter_automatic_posts')); ?>";
+                                window.location.href = "<?php echo esc_url(admin_url('admin.php?page=botwriter_automatic_posts')); ?>";
                                 
                             }, 3000); 
                         </script>                      
                       <?php
                       
                     } else {
-                      $message = __('New task was successfully updated!', 'wpbotwriter');                                            
+                      $message = __('New task was successfully updated!', 'botwriter');                                            
                       ?>
                         <script>
                             setTimeout(function() {
-                                window.location.href = "<?php echo esc_url(admin_url('admin.php?page=wpbotwriter_automatic_posts')); ?>";                                
+                                window.location.href = "<?php echo esc_url(admin_url('admin.php?page=botwriter_automatic_posts')); ?>";                                
                             }, 3000); 
                         </script>                      
                       <?php
                     }
                 } else {
-                        $notice = __('There was an error while updating item: ', 'wpbotwriter') . $wpdb->last_error;
+                        $notice = __('There was an error while updating item: ', 'botwriter') . $wpdb->last_error;
                 }
               }
           } else {
@@ -236,14 +236,14 @@ function wpbotwriter_form_page_handler(){
             $item = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$table_name} WHERE id = %d", $sanitized_id), ARRAY_A);
           if (!$item) {
               $item = $default;
-              $notice = __('Item not found', 'wpbotwriter');
+              $notice = __('Item not found', 'botwriter');
           }
       }
       
     }
 
     
-    add_meta_box('wpbotwriter_post_form_meta_box', __('Task Form', 'wpbotwriter'), 'wpbotwriter_post_form_meta_box_handler', 'wpbotwriter_automatic_post_new', 'normal', 'default');
+    add_meta_box('botwriter_post_form_meta_box', __('Task Form', 'botwriter'), 'botwriter_post_form_meta_box_handler', 'botwriter_automatic_post_new', 'normal', 'default');
 
     ?>
 <div class="wrap">
@@ -251,10 +251,10 @@ function wpbotwriter_form_page_handler(){
     
     <?php 
     $is_editing = isset($_REQUEST['id']) && intval($_REQUEST['id']) > 0;
-    $title_text = $is_editing ? __('Edit Task', 'wpbotwriter') : __('Add New', 'wpbotwriter');
+    $title_text = $is_editing ? __('Edit Task', 'botwriter') : __('Add New', 'botwriter');
     ?>
     <h2><?php echo esc_html($title_text); ?> <a class="add-new-h2"
-      href="<?php echo esc_url(get_admin_url(get_current_blog_id(), 'admin.php?page=wpbotwriter_automatic_posts')); ?>"><?php esc_html_e('Back to List', 'wpbotwriter'); ?></a>
+      href="<?php echo esc_url(get_admin_url(get_current_blog_id(), 'admin.php?page=botwriter_automatic_posts')); ?>"><?php esc_html_e('Back to List', 'botwriter'); ?></a>
     </h2>
 
     <?php if (!empty($notice)): ?>
@@ -273,8 +273,8 @@ function wpbotwriter_form_page_handler(){
             <div id="post-body">
                 <div id="post-body-content">
                     
-                    <?php do_meta_boxes('wpbotwriter_automatic_post_new', 'normal', $item); ?>
-                    <input type="submit" value="<?php esc_attr_e('Save', 'wpbotwriter')?>" id="submit" class="button-primary" name="submit" onclick="preSelectedOptions()">
+                    <?php do_meta_boxes('botwriter_automatic_post_new', 'normal', $item); ?>
+                    <input type="submit" value="<?php esc_attr_e('Save', 'botwriter')?>" id="submit" class="button-primary" name="submit" onclick="preSelectedOptions()">
                 </div>
             </div>
         </div>
@@ -300,7 +300,7 @@ function preSelectedOptions() {
  
 
 
-function wpbotwriter_get_admin_email(){
+function botwriter_get_admin_email(){
     $admin_email = get_option('admin_email', false);
     if ($admin_email !== false) {
 
@@ -314,9 +314,9 @@ function wpbotwriter_get_admin_email(){
 
   
 
-function wpbotwriter_post_form_meta_box_handler($item)
+function botwriter_post_form_meta_box_handler($item)
 {
-  Global $wpbotwriter_languages,$wpbotwriter_countries;
+  Global $botwriter_languages,$botwriter_countries;
   // Get the selected days
   $selected_days = isset($item["days"]) ? explode(",", $item["days"]) : array();
   $times_per_day = isset($item["times_per_day"]) ? $item["times_per_day"] : 1;
@@ -353,13 +353,13 @@ function wpbotwriter_post_form_meta_box_handler($item)
   <form class="row g-3">
       <?php
       //Get admin domain name
-      $wpbotwriter_admin_email = wpbotwriter_get_admin_email();
-      $wpbotwriter_domain_name = esc_url(get_site_url());
+      $botwriter_admin_email = botwriter_get_admin_email();
+      $botwriter_domain_name = esc_url(get_site_url());
       $is_empty = empty($item['domain_name']);
       ?>
 
-      <input type="hidden" id="wpbotwriter_admin_email" value="<?php echo esc_attr($wpbotwriter_admin_email); ?>">
-      <input type="hidden" id="wpbotwriter_domain_name" value="<?php echo esc_attr($wpbotwriter_domain_name); ?>">
+      <input type="hidden" id="botwriter_admin_email" value="<?php echo esc_attr($botwriter_admin_email); ?>">
+      <input type="hidden" id="botwriter_domain_name" value="<?php echo esc_attr($botwriter_domain_name); ?>">
       
     <div class="col-md-6">
       <label class="form-label">Task Name:</label>
@@ -374,7 +374,7 @@ function wpbotwriter_post_form_meta_box_handler($item)
 
   <!-- Writers -->
 <div class="col-md-6">
-  <label class="form-label"><?php echo esc_html__('Writer:', 'wpbotwriter'); ?></label>
+  <label class="form-label"><?php echo esc_html__('Writer:', 'botwriter'); ?></label>
   <div class="writer-options">
 
     <!-- Orion, the Versatile Assistant (Free) -->
@@ -382,10 +382,10 @@ function wpbotwriter_post_form_meta_box_handler($item)
       <input type="radio" name="writer" value="orion" required <?php if ($item['writer'] === 'orion') {
                                                                       echo 'checked';
                                                                     } ?>>
-      <img src="<?php echo esc_url($dir_images_writers . 'orion.jpeg'); ?>" alt="<?php echo esc_attr__('Orion', 'wpbotwriter'); ?>" class="writer-photo">
+      <img src="<?php echo esc_url($dir_images_writers . 'orion.jpeg'); ?>" alt="<?php echo esc_attr__('Orion', 'botwriter'); ?>" class="writer-photo">
       <div class="writer-info">
-        <strong><?php echo esc_html__('Orion, the Versatile Assistant', 'wpbotwriter'); ?></strong>
-        <p><?php echo esc_html__('Adaptable and insightful, perfect for a wide range of topics and styles.', 'wpbotwriter'); ?></p>
+        <strong><?php echo esc_html__('Orion, the Versatile Assistant', 'botwriter'); ?></strong>
+        <p><?php echo esc_html__('Adaptable and insightful, perfect for a wide range of topics and styles.', 'botwriter'); ?></p>
       </div>
     </label>
 
@@ -394,50 +394,50 @@ function wpbotwriter_post_form_meta_box_handler($item)
       <input type="radio" name="writer" value="lucida" required <?php if ($item['writer'] === 'lucida') {
                                                                       echo 'checked';
                                                                     } ?>>
-      <img src="<?php echo esc_url($dir_images_writers . 'lucida.jpeg'); ?>" alt="<?php echo esc_attr__('Lucida', 'wpbotwriter'); ?>" class="writer-photo">
+      <img src="<?php echo esc_url($dir_images_writers . 'lucida.jpeg'); ?>" alt="<?php echo esc_attr__('Lucida', 'botwriter'); ?>" class="writer-photo">
       <div class="writer-info">
-        <strong><?php echo esc_html__('Lucida, the Analytical Critic', 'wpbotwriter'); ?></strong>
-        <p><?php echo esc_html__('Precise and direct, perfect for deep analysis in complex topics.', 'wpbotwriter'); ?></p>
+        <strong><?php echo esc_html__('Lucida, the Analytical Critic', 'botwriter'); ?></strong>
+        <p><?php echo esc_html__('Precise and direct, perfect for deep analysis in complex topics.', 'botwriter'); ?></p>
       </div>
     </label>
 
     <!-- Max, the Adventurous Narrator (Pro) -->
     <label class="writer-option <?php echo $is_pro_user ? '' : 'writer-pro-blurred'; ?>">
       <input type="radio" name="writer" value="max" required <?php echo $item['writer'] === 'max' ? 'checked' : ''; ?> <?php echo $is_pro_user ? '' : 'disabled'; ?>>
-      <img src="<?php echo esc_url($dir_images_writers . 'max.jpeg'); ?>" alt="<?php echo esc_attr__('Max', 'wpbotwriter'); ?>" class="writer-photo">
+      <img src="<?php echo esc_url($dir_images_writers . 'max.jpeg'); ?>" alt="<?php echo esc_attr__('Max', 'botwriter'); ?>" class="writer-photo">
       <div class="writer-info">
-        <strong><?php echo esc_html__('Max, the Adventurous Narrator', 'wpbotwriter'); ?></strong>
-        <p><?php echo esc_html__('Passionate and descriptive, ideal for stories of travel and culture.', 'wpbotwriter'); ?></p>
+        <strong><?php echo esc_html__('Max, the Adventurous Narrator', 'botwriter'); ?></strong>
+        <p><?php echo esc_html__('Passionate and descriptive, ideal for stories of travel and culture.', 'botwriter'); ?></p>
       </div>
     </label>
 
     <!-- Cloe, the Ironic Cultural Critic (Pro) -->
     <label class="writer-option <?php echo $is_pro_user ? '' : 'writer-pro-blurred'; ?>">
       <input type="radio" name="writer" value="cloe" required <?php echo $item['writer'] === 'cloe' ? 'checked' : ''; ?> <?php echo $is_pro_user ? '' : 'disabled'; ?>>
-      <img src="<?php echo esc_url($dir_images_writers . 'cloe.jpeg'); ?>" alt="<?php echo esc_attr__('Cloe', 'wpbotwriter'); ?>" class="writer-photo">
+      <img src="<?php echo esc_url($dir_images_writers . 'cloe.jpeg'); ?>" alt="<?php echo esc_attr__('Cloe', 'botwriter'); ?>" class="writer-photo">
       <div class="writer-info">
-        <strong><?php echo esc_html__('Cloe, the Ironic Cultural Critic', 'wpbotwriter'); ?></strong>
-        <p><?php echo esc_html__('Sarcastic and witty, perfect for cultural and social reviews.', 'wpbotwriter'); ?></p>
+        <strong><?php echo esc_html__('Cloe, the Ironic Cultural Critic', 'botwriter'); ?></strong>
+        <p><?php echo esc_html__('Sarcastic and witty, perfect for cultural and social reviews.', 'botwriter'); ?></p>
       </div>
     </label>
 
     <!-- Gael, the Reflective Poet (Pro) -->
     <label class="writer-option <?php echo $is_pro_user ? '' : 'writer-pro-blurred'; ?>">
       <input type="radio" name="writer" value="gael" required <?php echo $item['writer'] === 'gael' ? 'checked' : ''; ?> <?php echo $is_pro_user ? '' : 'disabled'; ?>>
-      <img src="<?php echo esc_url($dir_images_writers . 'gael.jpeg'); ?>" alt="<?php echo esc_attr__('Gael', 'wpbotwriter'); ?>" class="writer-photo">
+      <img src="<?php echo esc_url($dir_images_writers . 'gael.jpeg'); ?>" alt="<?php echo esc_attr__('Gael', 'botwriter'); ?>" class="writer-photo">
       <div class="writer-info">
-        <strong><?php echo esc_html__('Gael, the Reflective Poet', 'wpbotwriter'); ?></strong>
-        <p><?php echo esc_html__('Introspective and poetic, ideal for philosophical and emotional themes.', 'wpbotwriter'); ?></p>
+        <strong><?php echo esc_html__('Gael, the Reflective Poet', 'botwriter'); ?></strong>
+        <p><?php echo esc_html__('Introspective and poetic, ideal for philosophical and emotional themes.', 'botwriter'); ?></p>
       </div>
     </label>
 
     <!-- Custom (Pro) -->
     <label class="writer-option <?php echo $is_pro_user ? '' : 'writer-pro-blurred'; ?>">
       <input type="radio" name="writer" value="custom" required <?php echo $item['writer'] === 'custom' ? 'checked' : ''; ?> <?php echo $is_pro_user ? '' : 'disabled'; ?>>
-      <img src="<?php echo esc_url($dir_images_writers . 'custom.jpeg'); ?>" alt="<?php echo esc_attr__('Custom', 'wpbotwriter'); ?>" class="writer-photo">
+      <img src="<?php echo esc_url($dir_images_writers . 'custom.jpeg'); ?>" alt="<?php echo esc_attr__('Custom', 'botwriter'); ?>" class="writer-photo">
       <div class="writer-info">
-        <strong><?php echo esc_html__('Custom, the User-Selected Style Bot', 'wpbotwriter'); ?></strong>
-        <p><?php echo esc_html__('Allows the user to choose a specific narrative style..', 'wpbotwriter'); ?></p>
+        <strong><?php echo esc_html__('Custom, the User-Selected Style Bot', 'botwriter'); ?></strong>
+        <p><?php echo esc_html__('Allows the user to choose a specific narrative style..', 'botwriter'); ?></p>
         <select class="form-select" id="narration" name="narration" onchange="toggleCustomStyleInput()">
         <?php
         $styles = [
@@ -519,7 +519,7 @@ function wpbotwriter_post_form_meta_box_handler($item)
     </div>
 
     <div class="col-md-6">
-            <label class="form-label"><?php esc_html_e('Days of the Week:', 'wpbotwriter'); ?></label><br>
+            <label class="form-label"><?php esc_html_e('Days of the Week:', 'botwriter'); ?></label><br>
             <?php 
             $days_of_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
             foreach ($days_of_week as $day) {                                
@@ -532,7 +532,7 @@ function wpbotwriter_post_form_meta_box_handler($item)
     </div>
 
     <div class="col-md-6">
-            <label  class="form-label"><?php esc_html_e('Post per Day:', 'wpbotwriter'); ?></label>
+            <label  class="form-label"><?php esc_html_e('Post per Day:', 'botwriter'); ?></label>
             <input type="number" name="times_per_day" min="1" value="<?php echo esc_attr($times_per_day); ?>" required>
     </div>
     <br>
@@ -577,7 +577,7 @@ function wpbotwriter_post_form_meta_box_handler($item)
             <label for="post_language" class="form-label">Post Language:</label>
             <select class="form-select" id="post_language" name="post_language">
                 <?php
-                    foreach ($wpbotwriter_languages as $code => $name) {                        
+                    foreach ($botwriter_languages as $code => $name) {                        
                         $selected = ($item['post_language'] == $code) ? 'selected' : '';    
                         echo "<option value='" . esc_attr($code) . "' " . esc_attr($selected) . " >" . esc_html($name) . "</option>";
                     }
@@ -592,7 +592,7 @@ function wpbotwriter_post_form_meta_box_handler($item)
 <br>
 
 <div class="col-md-6">
-  <label class="form-label"><?php echo esc_html__('Source of Ideas:', 'wpbotwriter'); ?></label>
+  <label class="form-label"><?php echo esc_html__('Source of Ideas:', 'botwriter'); ?></label>
   
   <!-- Radio Button Options with Icons -->
   <div class="source-options">
@@ -604,8 +604,8 @@ function wpbotwriter_post_form_meta_box_handler($item)
 
       <img src="<?php echo esc_url($dir_images_icons . 'sameblog100.png'); ?>" alt="Own Blog Articles" class="source-icon">
       <div class="writer-info">
-        <strong><?php echo esc_html__('IA Articles from topics or keywords', 'wpbotwriter'); ?></strong>
-        <p><?php echo esc_html__('Create News Articles from topics or keywords.', 'wpbotwriter'); ?></p>      
+        <strong><?php echo esc_html__('IA Articles from topics or keywords', 'botwriter'); ?></strong>
+        <p><?php echo esc_html__('Create News Articles from topics or keywords.', 'botwriter'); ?></p>      
       </div>
     </label>
 
@@ -616,8 +616,8 @@ function wpbotwriter_post_form_meta_box_handler($item)
                                                                     } ?>>	  
       <img src="<?php echo esc_url($dir_images_icons . 'externalwp100.png'); ?>" alt="WordPress External" class="source-icon">
         <div class="writer-info">
-        <strong><?php echo esc_html__('WordPress External', 'wpbotwriter'); ?></strong>
-        <p><?php echo esc_html__('Inspired by articles from an external WordPress, potentially in other languages. It rewrites the content and designs a completely new image.', 'wpbotwriter'); ?></p>
+        <strong><?php echo esc_html__('WordPress External', 'botwriter'); ?></strong>
+        <p><?php echo esc_html__('Inspired by articles from an external WordPress, potentially in other languages. It rewrites the content and designs a completely new image.', 'botwriter'); ?></p>
       </div>
     </label>
     
@@ -628,8 +628,8 @@ function wpbotwriter_post_form_meta_box_handler($item)
                                                                     } ?>>
       <img src="<?php echo esc_url($dir_images_icons . 'news100.png'); ?>" alt="Google News" class="source-icon">
         <div class="writer-info">
-        <strong><?php echo esc_html__('Google News', 'wpbotwriter'); ?></strong>
-        <p><?php echo esc_html__('Extracts trending news from Google News to rewrite and adapt to your blog’s audience. You can select the topic or keyword.', 'wpbotwriter'); ?></p>
+        <strong><?php echo esc_html__('Google News', 'botwriter'); ?></strong>
+        <p><?php echo esc_html__('Extracts trending news from Google News to rewrite and adapt to your blog’s audience. You can select the topic or keyword.', 'botwriter'); ?></p>
         </div>
     </label>
     
@@ -641,8 +641,8 @@ function wpbotwriter_post_form_meta_box_handler($item)
       
       <img src="<?php echo esc_url($dir_images_icons . 'rss100.png'); ?>" alt="RSS" class="source-icon">
       <div class="writer-info">
-        <strong><?php echo esc_html__('RSS (Web with RSS)', 'wpbotwriter'); ?></strong>
-        <p><?php echo esc_html__('Extracts articles from a website with an RSS feed to rewrite and adapt to your blog’s audience. You can select the topic or keyword.', 'wpbotwriter'); ?></p>      
+        <strong><?php echo esc_html__('RSS (Web with RSS)', 'botwriter'); ?></strong>
+        <p><?php echo esc_html__('Extracts articles from a website with an RSS feed to rewrite and adapt to your blog’s audience. You can select the topic or keyword.', 'botwriter'); ?></p>      
       </div>
     </label>
     
@@ -656,8 +656,8 @@ function wpbotwriter_post_form_meta_box_handler($item)
                                                                     } ?>>
       <img src="<?php echo esc_url($dir_images_icons . 'external100.png'); ?>" alt="External Research" class="source-icon">
       <div class="writer-info">
-        <strong><?php echo esc_html__('External Research', 'wpbotwriter'); ?></strong>
-        <p><?php echo esc_html__('Extracts information from external sources to rewrite and adapt to your blog’s audience. You can select the topic or keyword.', 'wpbotwriter'); ?></p>
+        <strong><?php echo esc_html__('External Research', 'botwriter'); ?></strong>
+        <p><?php echo esc_html__('Extracts information from external sources to rewrite and adapt to your blog’s audience. You can select the topic or keyword.', 'botwriter'); ?></p>
       </div>
     </label>    
     !-->
@@ -681,7 +681,7 @@ function wpbotwriter_post_form_meta_box_handler($item)
       
       <?php
                                             if (!$is_empty) {
-                                                echo esc_html__('Previously selected: ', 'wpbotwriter') . esc_html($item['website_category_name']);
+                                                echo esc_html__('Previously selected: ', 'botwriter') . esc_html($item['website_category_name']);
                                             }
                                             ?>
 
@@ -739,7 +739,7 @@ $default_language_code = substr($locale, 0, 2); // Obtiene el código del idioma
         <!-- ISO 3166-1 alpha-2 country codes -->
         <!-- Replace with actual country codes and names -->
         <?php
-        foreach ($wpbotwriter_countries as $code => $name) {
+        foreach ($botwriter_countries as $code => $name) {
             $selected = ($item['news_country'] == $code) ? 'selected' : (($code == strtolower($default_country_code) && empty($item['news_country'])) ? 'selected' : '');            
             echo "<option value='" . esc_attr($code) . "' " . esc_attr($selected) . " >" . esc_html($name) . "</option>";
         }
@@ -755,7 +755,7 @@ $default_language_code = substr($locale, 0, 2); // Obtiene el código del idioma
         <!-- Replace with actual language codes and names -->
         <?php
         
-        foreach ($wpbotwriter_languages as $code => $name) {
+        foreach ($botwriter_languages as $code => $name) {
           $selected = ($item['news_language'] == $code) ? 'selected' : (($code == strtolower($default_language_code) && empty($item['news_language'])) ? 'selected' : '');
           echo "<option value='" . esc_attr($code) . "' " . esc_attr($selected) . " >" . esc_html($name) . "</option>";
           

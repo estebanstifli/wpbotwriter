@@ -7,13 +7,13 @@ jQuery(document).ready(function($) {
         const iconElement = $(this);
 
         $.ajax({
-            url: wpbotwriter_ajax_object.ajax_url,
+            url: botwriter_ajax_object.ajax_url,
             type: 'POST',
             data: {
-                action: 'wpbotwriter_cambiar_status', // Change status of task
+                action: 'botwriter_cambiar_status', // Change status of task
                 id: id,
                 status: nuevoStatus,
-                nonce: wpbotwriter_ajax_object.nonce
+                nonce: botwriter_ajax_object.nonce
             },
             success: function(response) {
                 if(response.success) {

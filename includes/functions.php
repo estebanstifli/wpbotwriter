@@ -1,6 +1,6 @@
 <?php
 // varibales globales de opciones
-$wpbotwriter_countries = [
+$botwriter_countries = [
     'af' => 'Afghanistan',
     'al' => 'Albania',
     'dz' => 'Algeria',
@@ -246,7 +246,7 @@ $wpbotwriter_countries = [
     'me' => 'Montenegro',
 ];
        
-$wpbotwriter_languages = [
+$botwriter_languages = [
             'any' => 'Any Language',
             'af' => 'Afrikaans',
             'sq' => 'Albanian',
@@ -354,10 +354,10 @@ $wpbotwriter_languages = [
         ];
 
 // Function to parse the prompt code and return an associative array of values
-function wpbotwriter_parse_prompt_code($prompt_string) {
+function botwriter_parse_prompt_code($prompt_string) {
   // Strip the surrounding tags to isolate the data
-  $start_tag = '[wpbotwriter-promptcode]';
-  $end_tag = '[/wpbotwriter-promptcode]';
+  $start_tag = '[botwriter-promptcode]';
+  $end_tag = '[/botwriter-promptcode]';
   $start_pos = strlen($start_tag);
   $end_pos = strpos($prompt_string, $end_tag);
 
@@ -380,10 +380,10 @@ function wpbotwriter_parse_prompt_code($prompt_string) {
   ];
 }
 
-function wpbotwriter_parse_rewriting_prompt_code($prompt_string) {
+function botwriter_parse_rewriting_prompt_code($prompt_string) {
   // Strip the surrounding tags to isolate the data
-  $start_tag = '[wpbotwriter-rewriting-promptcode]';
-  $end_tag = '[/wpbotwriter-rewriting-promptcode]';
+  $start_tag = '[botwriter-rewriting-promptcode]';
+  $end_tag = '[/botwriter-rewriting-promptcode]';
   $start_pos = strlen($start_tag);
   $end_pos = strpos($prompt_string, $end_tag);
 

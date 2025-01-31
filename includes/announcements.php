@@ -1,34 +1,36 @@
 <?php
 
 // Add an action to the 'admin_notices' hook to execute our function
-add_action('admin_notices', 'wpbotwriter_create_alert');
+add_action('admin_notices', 'botwriter_create_alert');
 
 // Function to create admin alerts in the WordPress dashboard
-function wpbotwriter_create_alert() {
+function botwriter_create_alert() {
     // Get the alerts stored in WordPress options
-    $alerts = get_option('wpbotwriter_alerts');
+    $alerts = get_option('botwriter_alerts');
 
     // Get the plugin settings
-    $settings = get_option('wpbotwriter_settings');
+    $settings = get_option('botwriter_settings');
 
     // Unserialize the settings if they are not an array
     $settings = $settings ? unserialize($settings) : array(); // Use array() for PHP 5
 
-    $announcements = get_option('wpbotwriter_announcements'); // General announcements
-    $has_announcement = false;
-    foreach ($announcements as $announcement_id => $announcement) {                
-        if (isset($announcement['active']) && $announcement['active'] == "1") {
-            $has_announcement = true;
+    $announcements = get_option('botwriter_announcements'); // General announcements    
+    $has_announcement = false;    
+    if (!empty($announcements)) {
+        foreach ($announcements as $announcement_id => $announcement) {                
+            if (isset($announcement['active']) && $announcement['active'] == "1") {
+                $has_announcement = true;
+            }
         }
     }
 
     // Display the alerts or announcements if they exist
     if ($has_announcement) {
         echo '<div class="notice notice-info is-dismissible">'; 
-        echo '<p><strong>Wp BotWriter Announcement:</strong></p>';
+        echo '<p><strong>BotWriter Announcement:</strong></p>';
 
         // Display general alerts
-        if (!empty($alerts)) {
+        if (!empty($alerts)) { 
             echo '<p>' . esc_html($alerts) . '</p>';
         }
 
@@ -42,7 +44,7 @@ function wpbotwriter_create_alert() {
         }
 
         // Button to upgrade membership 
-        echo '<p><a href="' . esc_url('https://wpbotwriter.com') . '" target="_blank" class="button button-primary">' . esc_html__('Upgrade Membership', 'wpbotwriter') . '</a></p>';
+        echo '<p><a href="' . esc_url('https://wpbotwriter.com') . '" target="_blank" class="button button-primary">' . esc_html__('Upgrade Membership', 'botwriter') . '</a></p>';
         echo '</div>';
 
         // Add JavaScript code to handle the "Dismiss" event
@@ -51,8 +53,8 @@ function wpbotwriter_create_alert() {
                 var announcement_id = jQuery(this).data("announcement-id");
 
                 var data = {
-                    action: "wpbotwriter_dismiss_announcement",
-                    security: "' . esc_js(wp_create_nonce("wpbotwriter_dismiss_nonce")) . '",
+                    action: "botwriter_dismiss_announcement",
+                    security: "' . esc_js(wp_create_nonce("botwriter_dismiss_nonce")) . '",
                     announcement_id: announcement_id
                 };
                 console.log(data);
@@ -69,16 +71,16 @@ function wpbotwriter_create_alert() {
 
 
 
-function wpbotwriter_dismiss_announcement() {
-  check_ajax_referer('wpbotwriter_dismiss_nonce', 'security');
+function botwriter_dismiss_announcement() {
+  check_ajax_referer('botwriter_dismiss_nonce', 'security');
   
   if (isset($_POST['announcement_id'])) {
       $announcement_id = sanitize_text_field(wp_unslash($_POST['announcement_id']));
-      $announcements = get_option('wpbotwriter_announcements'); 
+      $announcements = get_option('botwriter_announcements'); 
 
         if (isset($announcements[$announcement_id])) {
             $announcements[$announcement_id]['active'] = 0;
-            update_option('wpbotwriter_announcements', $announcements);
+            update_option('botwriter_announcements', $announcements);
         }
       
       wp_send_json_success();
@@ -86,12 +88,12 @@ function wpbotwriter_dismiss_announcement() {
       wp_send_json_error();
   }
 }
-add_action('wp_ajax_wpbotwriter_dismiss_announcement', 'wpbotwriter_dismiss_announcement');
+add_action('wp_ajax_botwriter_dismiss_announcement', 'botwriter_dismiss_announcement');
 
 
 
-function wpbotwriter_announcements_add($title, $message) {    
-    $announcements = get_option('wpbotwriter_announcements', []);
+function botwriter_announcements_add($title, $message) {    
+    $announcements = get_option('botwriter_announcements', []);
 
     foreach ($announcements as $announcement) {
         if ($announcement['title'] == $title && $announcement['message'] == $message && $announcement['active'] == 1) {
@@ -106,39 +108,39 @@ function wpbotwriter_announcements_add($title, $message) {
     ];
 
     $announcements[] = $new_announcement;    
-    update_option('wpbotwriter_announcements', $announcements);
+    update_option('botwriter_announcements', $announcements);
 }
 
 
 // Función que se ejecuta al activar el plugin
 /*
-function wpbotwriter_announcements_activation() {
-  if ( ! wp_next_scheduled( 'wpbotwriter_fetch_announcements' ) ) {
-      wp_schedule_event( time(), 'ten_minutes', 'wpbotwriter_fetch_announcements' );
+function botwriter_announcements_activation() {
+  if ( ! wp_next_scheduled( 'botwriter_fetch_announcements' ) ) {
+      wp_schedule_event( time(), 'ten_minutes', 'botwriter_fetch_announcements' );
   }
 }
-register_activation_hook( __FILE__, 'wpbotwriter_announcements_activation' );
+register_activation_hook( __FILE__, 'botwriter_announcements_activation' );
 
 // Función que se ejecuta al desactivar el plugin
-function wpbotwriter_announcements_deactivation() {
-  wp_clear_scheduled_hook( 'wpbotwriter_fetch_announcements' );
+function botwriter_announcements_deactivation() {
+  wp_clear_scheduled_hook( 'botwriter_fetch_announcements' );
 }
-register_deactivation_hook( __FILE__, 'wpbotwriter_announcements_deactivation' );
+register_deactivation_hook( __FILE__, 'botwriter_announcements_deactivation' );
 
 // Añadir eventos programados (intervalos)
-function wpbotwriter_custom_intervals( $schedules ) {
+function botwriter_custom_intervals( $schedules ) {
   $schedules['ten_minutes'] = array(
       'interval' => 600, // 600 segundos = 10 minutos
       'display'  => __( 'Every 10 Minutes' ),
   );
   return $schedules;
 }
-add_filter( 'cron_schedules', 'wpbotwriter_custom_intervals' );
+add_filter( 'cron_schedules', 'botwriter_custom_intervals' );
 
 // Función para obtener anuncios de la API
-function wpbotwriter_fetch_announcements() {
-  // Obtener la opción wpbotwriter_settings y deserializar
-  $settings_option = get_option( 'wpbotwriter_settings' );
+function botwriter_fetch_announcements() {
+  // Obtener la opción botwriter_settings y deserializar
+  $settings_option = get_option( 'botwriter_settings' );
   
   if ( empty( $settings_option ) ) {
       return; // Si no hay configuración, detener
@@ -172,11 +174,11 @@ function wpbotwriter_fetch_announcements() {
 
   if (  is_array( $announcements ) ) {
       // Guardar los anuncios en la opción de WordPress
-      update_option( 'wpbotwriter_announcements', $announcements );
+      update_option( 'botwriter_announcements', $announcements );
   }
 }
 
-add_action( 'wpbotwriter_fetch_announcements', 'wpbotwriter_fetch_announcements' );
+add_action( 'botwriter_fetch_announcements', 'botwriter_fetch_announcements' );
 */
 
 ?>

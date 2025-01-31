@@ -18,9 +18,9 @@ function insertTag(tag) {
 }
 
 
-function wpbotwriter_updateEmail() {
-  var email_blog = document.getElementById('wpbotwriter_email').value;
-  var api_key = document.getElementById('wpbotwriter_api_key').value;
+function botwriter_updateEmail() {
+  var email_blog = document.getElementById('botwriter_email').value;
+  var api_key = document.getElementById('botwriter_api_key').value;
 
   console.log('Email: ' + email_blog);
   console.log('API KEY: ' + api_key);
@@ -77,9 +77,9 @@ function wpbotwriter_updateEmail() {
 }
 
 
-function wpbotwriter_getUserData() {
-  var url = document.getElementById('wpbotwriter_domain_name').value;
-  var api_key = document.getElementById('wpbotwriter_api_key').value;
+function botwriter_getUserData() {
+  var url = document.getElementById('botwriter_domain_name').value;
+  var api_key = document.getElementById('botwriter_api_key').value;
 
   console.log('URL: ' + url);
   console.log('API KEY: ' + api_key);
@@ -245,10 +245,10 @@ function refreshWebsiteCategories() {
   var domainNameInput = document.getElementById('domain_name');
   var domainName = domainNameInput.value.trim(); // Elimina espacios en blanco
 
-  var adminEmailInput = document.getElementById('wpbotwriter_admin_email');
+  var adminEmailInput = document.getElementById('botwriter_admin_email');
   var adminEmail = adminEmailInput.value;
 
-  var adminDomainInput = document.getElementById('wpbotwriter_domain_name');
+  var adminDomainInput = document.getElementById('botwriter_domain_name');
   var adminDomain = adminDomainInput.value;
 
   // Asegurar que el dominio tenga https://
