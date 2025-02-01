@@ -3,7 +3,7 @@
 Plugin Name: BotWriter
 Plugin URI:  https://www.wpbotwriter.com
 Description: Plugin for automatically generating posts using artificial intelligence. Create content from scratch with AI and generate custom images. Optimize content for SEO, including tags, titles, and image descriptions. Advanced features like ChatGPT, automatic content creation, image generation, SEO optimization, and AI training make this plugin a complete tool for writers and content creators.
-Version: 1.2.6
+Version: 1.2.8
 Author: Esteban Stif Li
 License:           GPL v2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -17,7 +17,8 @@ if (!defined('ABSPATH')) {
 }
 
 define('BOTWRITER_URL', plugin_dir_url(__FILE__));
- 
+
+
 require plugin_dir_path( __FILE__ ) . 'includes/posts.php';
 require plugin_dir_path( __FILE__ ) . 'includes/functions.php';
 require plugin_dir_path( __FILE__ ) . 'includes/settings.php';
@@ -121,7 +122,7 @@ function botwriter_add_admin_menu() {
       'botwriter_form_page_handler' // Callback function to display content
     );
 
-    /*
+    
     add_submenu_page('botwriter_menu', 
      __('Test_call', 'botwriter'), // Translatable page title
      __('Test_call', 'botwriter'), // Translatable menu title
@@ -129,7 +130,7 @@ function botwriter_add_admin_menu() {
       'botwriter_prueba',// Page slug
       'botwriter_prueba' // Callback function to display content
     );
-    */
+    
     
     add_submenu_page('botwriter_menu',
      __('Settings', 'botwriter'), // Translatable page title
@@ -158,7 +159,7 @@ function botwriter_prueba() {
     
     ?>
 
-    <h1>Prueba</h1>
+    <h1>Prueba...</h1>
     <div>        
         Llamando a la funcion que ejecuta las tareas
     </div>
@@ -181,8 +182,9 @@ function botwriter_admin_page() {
     
     ?>    
     <div class="wrap">
-        <h1><?php echo esc_html__('BotWriter - AI-Powered Content Creation', 'botwriter'); ?></h1>
-        <p><?php echo esc_html__('BotWriter is a powerful plugin that automates content generation using artificial intelligence.', 'botwriter'); ?></p>
+        <h1><?php echo esc_html__('BotWriter - AI-Powered Content Creation', 'botwriter'); ?></h1>        
+        <p><?php echo esc_html__('BotWriter is a WordPress plugin that uses artificial intelligence (AI) to rewrite existing content or generate completely new content. It integrates with sources such as WordPress, RSS, and Google News to provide unique and SEO-optimized content.', 'botwriter'); ?></p>
+        <h2><?php echo esc_html__('Key Features:', 'botwriter'); ?></h2>
         <ul>
             <li><?php echo esc_html__('✔ AI-generated content and rewrites', 'botwriter'); ?></li>
             <li><?php echo esc_html__('✔ SEO-optimized posts with titles, tags, and metadata', 'botwriter'); ?></li>
@@ -196,6 +198,10 @@ function botwriter_admin_page() {
         <p><?php echo esc_html__('1. Create tasks in Automatic Post.', 'botwriter'); ?></p>        
         <p><?php echo esc_html__('2. The plugin will automatically generate the posts!', 'botwriter'); ?></p>
         <p><?php echo esc_html__('3. (Optional) Configure the settings if needed.', 'botwriter'); ?></p>
+        <p><?php echo esc_html__('4. (Optional) Check the logs to see the status of the tasks.', 'botwriter'); ?></p>
+
+        <h2><?php echo esc_html__('Free Plan or Premium Plan', 'botwriter'); ?></h2>
+        <p><?php echo esc_html__('BotWriter offers a free plan with limited features. To access all the features, you can upgrade to a premium plan.', 'botwriter'); ?> <a href="https://www.wpbotwriter.com" target="_blank"><?php echo esc_html__('Click here to see the plans.', 'botwriter'); ?></a></p>        
     </div>
     
     <?php
@@ -206,19 +212,43 @@ function botwriter_admin_page() {
 // Hook that runs on plugin activation
 register_activation_hook(__FILE__, 'botwriter_plugin_activate');
 
-function botwriter_plugin_activate() {
+function botwriter_plugin_activate() {    
     $site_url = get_site_url();
     $admin_email = get_option('admin_email');
-
-    $options = get_option('botwriter_settings');
-    $remote_url = isset($options['remote_url']) ? $options['remote_url'] : 'https://wpbotwriter.com/public/activation.php';
     
-    $api_key = get_option('botwriter_api_key');
+    $remote_url = 'https://wpbotwriter.com/public/activation.php';
     
+    //options
+    $api_key = get_option('botwriter_api_key');    
     if ($api_key) {        
         return;
     }
+
+    if (get_option('botwriter_paused_tasks') === false) {
+        update_option('botwriter_paused_tasks', "2");
+    }
     
+    if (get_option('botwriter_email') === false) {
+        update_option('botwriter_email', get_option('admin_email'));
+    }
+
+    if (get_option('botwriter_email_confirmed') === false) {
+        update_option('botwriter_email_confirmed', '0');
+    }
+
+    if (get_option('botwriter_cron_active') === false) {
+        update_option('botwriter_cron_active', '1');
+    }
+    
+    if (get_option('botwriter_ai_image_size') === false) {
+        update_option('botwriter_ai_image_size', 'square_hd');
+    }
+    
+    if (get_option('botwriter_sslverify') === false) {
+        update_option('botwriter_sslverify', 'yes');
+    }
+
+
         
     $data = array(
         'user_domainname' => $site_url,
@@ -271,7 +301,7 @@ function botwriter_plugin_activate() {
     );
 
     $final_response = wp_remote_post($remote_url, array(
-        'method'    => 'POST',
+        'method'    => 'POST', 
         'body'      => $response_data,
         'timeout'   => 45,
         'headers'   => array(),
@@ -340,6 +370,7 @@ if (!class_exists('WP_List_Table')) {
                 `times_per_day` INT NOT NULL,
                 `execution_count` INT DEFAULT 0,
                 `last_execution_date` DATE DEFAULT NULL,
+                `last_execution_time` TIMESTAMP DEFAULT 0,
                 `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 `status` int DEFAULT 1,
                 `website_name` VARCHAR(255),
@@ -384,6 +415,7 @@ if (!class_exists('WP_List_Table')) {
                 `id_task` int(11) NOT NULL, 
                 `id_task_server` int(11) NOT NULL,
                 `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                `last_execution_time` TIMESTAMP DEFAULT 0, 
                 `intentosfase1` int(11) NOT NULL DEFAULT 0,
                 `intentosfase2` int(11) NOT NULL DEFAULT 0,                
                 `task_status` VARCHAR(255),
@@ -771,6 +803,7 @@ function botwriter_isValidDomain($domain) {
  
 
 // Add a custom schedule for cron jobs
+
 function botwriter_add_custom_cron_schedule($schedules) {
     if (!isset($schedules['every_30'])) {
         $schedules['every_30'] = array(
@@ -845,16 +878,26 @@ register_deactivation_hook(__FILE__, 'botwriter_scheduled_events_plugin_deactiva
         }
 
         // Check if the task can still be executed based on its daily limit
-        if ($task["execution_count"] < $task["times_per_day"]) {            
-                //echo('Executing event pass 1: ' . $task["task_name"] . ' - Times: ' . ($task["execution_count"] + 1) . "<br>\n");            
-                $event=$task;                
-                $event["task_status"] = "pending";            
-                $event["id_task"] = $task["id"];              
-                $id_log=botwriter_logs_register($event);  // create log in db
-                $event["id"]=$id_log;
-            botwriter_send1_data_to_server( (array) $event);                                      
-            // Update execution count in the database
-            $wpdb->update($table_name_tasks, ['execution_count' => $task["execution_count"] + 1], ['id' => $task["id"]]);            
+        if ($task["execution_count"] < $task["times_per_day"]) {                            
+                $last_execution_time = $task["last_execution_time"];
+                $now = current_time('timestamp');
+                $diff = $now - strtotime($last_execution_time);
+                $pause = get_option('botwriter_paused_tasks');
+                $pause = is_numeric($pause) ? intval($pause) : 2;
+                
+                if ($diff > 60 * $pause) { //                 
+                    $event=$task;                                                       
+                    $event["task_status"] = "pending";            
+                    $event["id_task"] = $task["id"];              
+                    $event["intentosfase1"] = 0;
+                    $id_log=botwriter_logs_register($event);  // create log in db
+                    $event["id"]=$id_log;                
+                    
+                    botwriter_send1_data_to_server( (array) $event);                                      
+                    // Update execution count in the database and last_execution_time
+                    $current_time = gmdate('Y-m-d H:i:s', current_time('timestamp'));
+                    $wpdb->update($table_name_tasks, ['execution_count' => $task["execution_count"] + 1,'last_execution_time'=>$current_time], ['id' => $task["id"]]);            
+                }            
         }
     }  // end tasks
 
@@ -881,31 +924,19 @@ function botwriter_execute_events_pass2(){
     $intento_tiempo = array(0=>0,1=>0,2=>5,3=>10,4=>30,5=>60,6=>120,7=>240,8=>480); // minutos    
     foreach ($events1 as $event) {
         $event = (array) $event;
-        // Execute the event if the time has passed
+        // Execute the event if the time has passed 
         $intentosfase1 = $event["intentosfase1"];
         $tiempo = $intento_tiempo[$intentosfase1+1];
-        $created_at = strtotime($event["created_at"]);
-        $now = time() + 3600; // UTC+1
-        
+        $created_at = strtotime($event["created_at"]);        
+        $now = current_time('timestamp');
 
-        $diff = $now - $created_at;
+        $diff = $now - $created_at;       
         if ($diff > $tiempo * 60) {        
             botwriter_send1_data_to_server( (array) $event);
         }
         
     } // END LOGS IN ERROR
-
-    // INQUEUE OR PENDING MORE THAN 5'
-    /*
-    $events3 = (array) $wpdb->get_results("SELECT * FROM $table_name_logs WHERE  intentosfase1 < 7 and (task_status='inqueue' or task_status='pending') ");    
-    foreach ($events3 as $event) {
-        $event = (array) $event;
-        //echo "Event caso raro: " . $event["created_at"] . " - " . $event["task_status"] . " <br>\n";             
-        $event["task_status"]="error";
-        botwriter_logs_register($event, $event["id"]);                                
-    } // END LOGS INQUEUE OR PENDING
-    */
-
+   
 
 }
 
@@ -939,6 +970,8 @@ function botwriter_generate_post($data){
  
 // Function to send data to the server pass1
 function botwriter_send1_data_to_server($data) {
+    
+    
     Global $botwriter_version;
     $remote_url = 'https://wpbotwriter.com/public/redis_api_cola.php';
      
@@ -956,6 +989,13 @@ function botwriter_send1_data_to_server($data) {
     $data["user_domainname"] = esc_url(get_site_url());
     $data["ai_image_size"]=get_option('botwriter_ai_image_size');
 
+
+     
+    $current_time = gmdate('Y-m-d H:i:s', current_time('timestamp'));            
+    $data["last_execution_time"]=$current_time;
+    
+    $last_execution_time = $data["last_execution_time"];    
+    
     
     $category_ids=array_map('intval', explode(',', $data['category_id']));
     $titles = botwriter_get_logs_titles($data['id_task']);
@@ -1003,34 +1043,38 @@ function botwriter_send1_data_to_server($data) {
         'sslverify' => $ssl_verify, 
     ));
 
-    botwriter_intentofase1_add($data["id"]);
+    $data["intentosfase1"]++;
+    botwriter_logs_register($data, $data["id"]); 
+    
+    $last_execution_time=$data["last_execution_time"];
+    
 
     if (is_wp_error($response)) {
         $error_message = $response->get_error_message();        
         //error_log("Error sending data to $remote_url: $error_message");        
+        $data["task_status"]="error";
+        botwriter_logs_register($data, $data["id"]);            
         return false;
+
     } else {
         
         if ($response['response']['code'] === 200) {
         
             $body = wp_remote_retrieve_body($response);
             $result = json_decode($body, true);        
-            if (isset($result['id_task_server']) && $result['id_task_server'] !== 0) { // ok
-                
+            if (isset($result['id_task_server']) && $result['id_task_server'] !== 0) { // ok                
                 $data["id_task_server"]=$result['id_task_server'];
-                $data["task_status"]='inqueue';   
-                
+                $data["task_status"]='inqueue';                   
                 botwriter_logs_register($data, $data["id"]);             
                 return $result['id_task_server'];                 
-            } else { // error
-                
-                $event["task_status"]="error";
+            } else { // error                
+                $data["task_status"]="error";
                 botwriter_logs_register($data, $data["id"]);                
                 //error_log('Error sending data to the server');
                 return false;
             }            
         } else {  // error          
-            $event["task_status"]="error";
+            $data["task_status"]="error";
             botwriter_logs_register($data, $data["id"]);            
             //error_log('Error sending data to the server');
             return false;
@@ -1041,13 +1085,10 @@ function botwriter_send1_data_to_server($data) {
 }
 
 // Function to send data to the server pass2
-function botwriter_send2_data_to_server($data) {         
+function botwriter_send2_data_to_server($data) {  
     
     $data['api_key'] = get_option('botwriter_api_key');
     $data["user_domainname"] = esc_url(get_site_url());
-
-    
-    
 
     $remote_url =  'https://wpbotwriter.com/public/redis_api_finish.php';
             
@@ -1066,21 +1107,20 @@ function botwriter_send2_data_to_server($data) {
         'sslverify' => $ssl_verify
     ));
 
-    botwriter_intentofase1_add($data["id"]);
+    
     if (is_wp_error($response)) {
         $error_message = $response->get_error_message();
         //error_log("Error sending data to $remote_url: $error_message");
         $data["error"]= "Error sending data " . $error_message;
         return false;
     } else {
-        
-    
+            
         if ($response['response']['code'] === 200) {
         
             $body = wp_remote_retrieve_body($response);
             $result = json_decode($body, true);
         
-            //echo 'Datos recibidos: <pre>' . print_r($result, true) . '</pre>'; 
+            //echo 'Data recive: <pre>' . print_r($result, true) . '</pre>'; 
             
             // results errors
             if (isset($result["task_status"]) && $result["task_status"] == "error") {
@@ -1100,7 +1140,6 @@ function botwriter_send2_data_to_server($data) {
                 }
                 
                 botwriter_logs_register($data, $data["id"]);
-
                 return false; 
             }
             
@@ -1115,7 +1154,24 @@ function botwriter_send2_data_to_server($data) {
 
                 botwriter_logs_register($result, $data["id"]);               
                 return $result;
-            }            
+            } 
+            
+            // other results, inqueue, pending, etc
+            $now=current_time('timestamp');
+            $last_execution_time = strtotime($result["last_execution_time"]);
+            $diff = $now - $last_execution_time;
+            if ($diff > 60 * 5) { // 5 minutes
+                    $data["task_status"]="error";
+                    $data["error"]="Error in server";
+                    botwriter_logs_register($data, $data["id"]);                    
+            } 
+            return false;
+                           
+           
+            
+            
+
+
         } else {            // error
             // update log
             $data["task_status"]="error";
@@ -1128,64 +1184,6 @@ function botwriter_send2_data_to_server($data) {
         
 }
 
-// update the log with the post id
-function botwriter_intentofase1_add($id_log) {
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'botwriter_logs';
-    
-    // Increment the attempt field
-    $updated = $wpdb->query(
-        $wpdb->prepare(
-            "UPDATE {$table_name} SET intentosfase1 = intentosfase1 + 1 WHERE id = %d",
-            $id_log
-        )
-    );
-
-    if ($updated === false) {
-        return 0; // Return 0 if the query fails
-    }
-
-    // Get the new value of attempts
-    $result = $wpdb->get_var(
-        $wpdb->prepare(
-            "SELECT intentosfase1 FROM {$table_name} WHERE id = %d",
-            $id_log
-        )
-    );
-
-    // Return the value as an integer or 0 if null
-    return ($result !== null) ? intval($result) : 0;
-}
-
-function botwriter_intentofase2_add($id_log) {
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'botwriter_logs';
-
-    // Incrementar el campo intentos
-    $updated = $wpdb->query(
-        $wpdb->prepare(
-            "UPDATE {$table_name}
-             SET intentosfase2 = intentosfase2 + 1 
-             WHERE id = %d",
-            $id_log
-        )
-    );
-
-    if ($updated === false) {
-        return 0; // Devuelve 0 si la consulta falla
-    }
-
-    // Obtener el nuevo valor de intentos
-    $result = $wpdb->get_var(
-        $wpdb->prepare(
-            "SELECT intentosfase2 FROM {$table_name} WHERE id = %d",
-            $id_log
-        )
-    );
-
-    // Devolver el valor como entero o 0 si es nulo
-    return ($result !== null) ? intval($result) : 0;
-}
 
 
  

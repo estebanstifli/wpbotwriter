@@ -33,9 +33,7 @@ function botwriter_logs_page_handler() {
     echo '</div>';
 }
 
-if (!class_exists('WP_List_Table')) {
-    require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
-}
+
 
 class botwriter_Logs_Table extends WP_List_Table {
 
@@ -235,7 +233,7 @@ function botwriter_get_logs_titles($id_task) {
     
 }
  
-
+ 
 
 
 // Register a log in the botwriter_logs table (insert or update)
@@ -287,7 +285,9 @@ function botwriter_logs_register($data, $id = null) {
         'news_source',
         'rss_source',
         'ai_keywords',
-        'intentosfase1'
+        'intentosfase1',
+        'last_execution_time'
+
     );
 
     // Create the array with only the existing values in $data
@@ -328,6 +328,4 @@ function botwriter_logs_get($id) {
     return $log;
 }
 
-
 ?>
- 

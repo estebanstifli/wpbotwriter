@@ -64,6 +64,7 @@ function botwriter_form_page_handler(){
         'custom_style'          => '',
         'post_language' => '',
         'post_length' => '800',
+        'custom_post_length' => '',
         'post_status'      => 'publish',
         'days'             => '',
         'times_per_day'    => 1,

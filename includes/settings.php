@@ -9,11 +9,6 @@ function botwriter_settings_page_handler() {
     $notice = '';
     $message = '';
 
-    // valores por defecto iniciales:
-    get_option('botwriter_email') == '' ? update_option('botwriter_email', get_option('admin_email')) : '';
-    get_option('botwriter_email_confirmed') == '' ? update_option('botwriter_email_confirmed', '0') : '';
-    get_option('botwriter_cron_active') == '' ? update_option('botwriter_cron_active', '1') : '';
-
     // Manejo de opciones enviadas
     if (isset($_POST['nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), basename(__FILE__))) {
 
@@ -24,7 +19,8 @@ function botwriter_settings_page_handler() {
             'botwriter_sslverify' => isset($_POST['botwriter_sslverify']) ? sanitize_text_field(wp_unslash($_POST['botwriter_sslverify'])) : "yes",
             'botwriter_email' => isset($_POST['botwriter_email']) ? sanitize_email(wp_unslash($_POST['botwriter_email'])) : get_option('admin_email'),
             'botwriter_api_key' => isset($_POST['botwriter_api_key']) ? sanitize_text_field(wp_unslash($_POST['botwriter_api_key'])) : '',            
-            'botwriter_cron_active' => isset($_POST['botwriter_cron_active']) ? sanitize_text_field(wp_unslash($_POST['botwriter_cron_active'])) : '1',                    
+            'botwriter_cron_active' => isset($_POST['botwriter_cron_active']) ? sanitize_text_field(wp_unslash($_POST['botwriter_cron_active'])) : '1',
+            'botwriter_paused_tasks' => isset($_POST['botwriter_paused_tasks']) ? sanitize_text_field(wp_unslash($_POST['botwriter_paused_tasks'])) : '2',
         );
 
         $settings["plan_id"]=0; // free plan
@@ -117,7 +113,8 @@ function botwriter_settings_meta_box_handler() {
     $settings = array(        
         'botwriter_ai_image_size' => get_option('botwriter_ai_image_size', 'square_hd'),
         'botwriter_sslverify' => get_option('botwriter_sslverify', 'yes'),
-        'botwriter_cron_active' => get_option('botwriter_cron_active', '1'),
+        'botwriter_cron_active' => get_option('botwriter_cron_active', '1'),        
+        'botwriter_paused_tasks' => get_option('botwriter_paused_tasks', '2'),        
     );
 
     ?>    
@@ -137,10 +134,19 @@ function botwriter_settings_meta_box_handler() {
     </div>
     <br>
 
-
     
     <div class="col-md-6">
-        <label class="form-label"><?php esc_html_e('Disable SSL verification for API requests:', 'botwriter'); ?></label>
+        <label class="form-label"><?php esc_html_e('Pause between daily posts of the same task (minutes):', 'botwriter'); ?></label>
+        <div style="display: flex; align-items: center;">
+            <input type="number" name="botwriter_paused_tasks" value="<?php echo esc_attr($settings['botwriter_paused_tasks']); ?>" min="2" style="margin-right: 10px;">
+            <span><?php esc_html_e('minutes', 'botwriter'); ?></span>
+        </div>
+    </div>
+    <br>
+    
+     
+    <div class="col-md-6">
+        <label class="form-label"><?php esc_html_e('Disable SSL verification for API requests: (Not recommended. Only for temporary testing)', 'botwriter'); ?></label>
         <input type="checkbox" name="botwriter_sslverify" value="no" <?php checked($settings['botwriter_sslverify'], 'no'); ?>>
         
     </div>
