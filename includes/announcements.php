@@ -38,7 +38,7 @@ function botwriter_create_alert() {
             foreach ($announcements as $announcement_id => $announcement) {                
                 if (isset($announcement['active']) && $announcement['active'] == "1") {
                     echo '<p>' . esc_html($announcement['title']) . ': ' . wp_kses_post($announcement['message']) . '</p>';
-                    echo '<button data-announcement-id="' . esc_attr($announcement_id) . '" class="button dismiss-announcement">Dismiss</button>';
+                    echo '<button data-announcement-id="' . esc_attr($announcement_id) . '" class="button botwriter-dismiss-announcement">Dismiss</button>';
                 }
             }
         }
@@ -47,25 +47,7 @@ function botwriter_create_alert() {
         echo '<p><a href="' . esc_url('https://wpbotwriter.com') . '" target="_blank" class="button button-primary">' . esc_html__('Upgrade Membership', 'botwriter') . '</a></p>';
         echo '</div>';
 
-        // Add JavaScript code to handle the "Dismiss" event
-        echo '<script type="text/javascript">
-            jQuery(document).on("click", ".dismiss-announcement", function() {
-                var announcement_id = jQuery(this).data("announcement-id");
-
-                var data = {
-                    action: "botwriter_dismiss_announcement",
-                    security: "' . esc_js(wp_create_nonce("botwriter_dismiss_nonce")) . '",
-                    announcement_id: announcement_id
-                };
-                console.log(data);
-
-                jQuery.post(ajaxurl, data, function(response) {
-                    if(response.success) {
-                        location.reload(); // Reload the page after hiding the announcement
-                    }
-                });
-            });
-        </script>';
+        
     }
 }
 
@@ -112,73 +94,3 @@ function botwriter_announcements_add($title, $message) {
 }
 
 
-// Función que se ejecuta al activar el plugin
-/*
-function botwriter_announcements_activation() {
-  if ( ! wp_next_scheduled( 'botwriter_fetch_announcements' ) ) {
-      wp_schedule_event( time(), 'ten_minutes', 'botwriter_fetch_announcements' );
-  }
-}
-register_activation_hook( __FILE__, 'botwriter_announcements_activation' );
-
-// Función que se ejecuta al desactivar el plugin
-function botwriter_announcements_deactivation() {
-  wp_clear_scheduled_hook( 'botwriter_fetch_announcements' );
-}
-register_deactivation_hook( __FILE__, 'botwriter_announcements_deactivation' );
-
-// Añadir eventos programados (intervalos)
-function botwriter_custom_intervals( $schedules ) {
-  $schedules['ten_minutes'] = array(
-      'interval' => 600, // 600 segundos = 10 minutos
-      'display'  => __( 'Every 10 Minutes' ),
-  );
-  return $schedules;
-}
-add_filter( 'cron_schedules', 'botwriter_custom_intervals' );
-
-// Función para obtener anuncios de la API
-function botwriter_fetch_announcements() {
-  // Obtener la opción botwriter_settings y deserializar
-  $settings_option = get_option( 'botwriter_settings' );
-  
-  if ( empty( $settings_option ) ) {
-      return; // Si no hay configuración, detener
-  }
-
-  // Obtener el valor de api_key de la configuración
-  $settings = maybe_unserialize( $settings_option );
-  $api_key = isset( $settings['api_key'] ) ? $settings['api_key'] : '';
-
-  $api_url = 'https://https://wpbotwriter.com/public//announcements.php';
-
-  // Configurar la solicitud API según si hay api_key
-  $request_url = ! empty( $api_key ) ? add_query_arg( 'api_key', $api_key, $api_url ) : $api_url;
-
-  // Hacer la solicitud a la API
-  $response = wp_remote_get( $request_url, array(
-      'timeout'   => 15,
-      'sslverify' => false,
-      'headers'   => array(
-          'Content-Type' => 'application/json',
-          'Accept'       => 'application/json',
-      )
-  ) );
-
-  if ( is_wp_error( $response ) ) {
-      return; // Si hay un error, detener
-  }
-
-  $body = wp_remote_retrieve_body( $response );
-  $announcements = json_decode( $body, true );
-
-  if (  is_array( $announcements ) ) {
-      // Guardar los anuncios en la opción de WordPress
-      update_option( 'botwriter_announcements', $announcements );
-  }
-}
-
-add_action( 'botwriter_fetch_announcements', 'botwriter_fetch_announcements' );
-*/
-
-?>

@@ -182,7 +182,7 @@ function botwriter_settings_meta_box_handler() {
             <?php 
             esc_html_e('Modify the API Key if you subscribe to a payment plan, otherwise leave it as it is. If you need a new API Key, you can get it from:', 'botwriter');                
             ?>
-            <a href="https://wpbotwriter.com" target="_blank">BotWriter AI</a>
+            <a href="https://wpbotwriter.com" target="_blank">BotWriter.com</a>
         </p>
     </div>    
     <br>

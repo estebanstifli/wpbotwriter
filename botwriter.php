@@ -4,7 +4,8 @@ Plugin Name: BotWriter
 Plugin URI:  https://www.wpbotwriter.com
 Description: Plugin for automatically generating posts using artificial intelligence. Create content from scratch with AI and generate custom images. Optimize content for SEO, including tags, titles, and image descriptions. Advanced features like ChatGPT, automatic content creation, image generation, SEO optimization, and AI training make this plugin a complete tool for writers and content creators.
 Version: 1.2.8
-Author: Esteban Stif Li
+Author: estebandezafra
+Requires PHP: 7.0
 License:           GPL v2 or later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: botwriter
@@ -30,13 +31,16 @@ require plugin_dir_path( __FILE__ ) . 'includes/announcements.php';
 // Enqueque JS Files
 function botwriter_enqueue_scripts() { 
     $my_plugin_dir = plugin_dir_url(__FILE__);        
+    $screen = get_current_screen();
+    $slug = $screen->id;
+
+
+	
     wp_register_script( 'bootstrapjs',$my_plugin_dir.'/assets/js/bootstrap.min.js' , array('jquery'), false, true );
     wp_enqueue_script( 'bootstrapjs' );
-
     
     wp_register_script( 'botwriter_bootstrap_bundle',$my_plugin_dir.'/assets/js/bootstrap.bundle.min.js' , array('jquery','botwriter_jquery_ui'), false, true );
     wp_enqueue_script( 'botwriter_bootstrap_bundle' );
-
 
     wp_register_script( 'botwriter_botwriter',$my_plugin_dir.'/assets/js/botwriter.js' , array('jquery'), false, true );
     wp_enqueue_script( 'botwriter_botwriter' );
@@ -46,6 +50,22 @@ function botwriter_enqueue_scripts() {
         'ajax_url' => admin_url('admin-ajax.php'),
         'nonce'    => wp_create_nonce('botwriter_cambiar_status_nonce')
     ]);
+
+
+    if ($slug==="botwriter_page_botwriter_announcements") {
+        wp_enqueue_script('botwriter-dismiss-script', $my_plugin_dir .  'js/botwriter_dismiss.js', array('jquery'), null, true);    
+        wp_localize_script('botwriter-dismiss-script','botwriterData',
+            array(
+                'nonce'   => wp_create_nonce('botwriter_dismiss_nonce'),
+                'ajaxurl' => admin_url('admin-ajax.php')
+            )
+        );
+    }
+
+    if ($slug==="botwriter_page_botwriter_automatic_post_new") {
+        wp_register_script('botwriter_automatic_posts', $my_plugin_dir . 'assets/js/posts.js', array('jquery'), false, true);
+        wp_enqueue_script('botwriter_automatic_posts');
+    }
     
 
 }
@@ -53,11 +73,7 @@ add_action('admin_enqueue_scripts','botwriter_enqueue_scripts');
 
 
 
-// Load translation files
-add_action('plugins_loaded', 'botwriter_load_textdomain');
-function botwriter_load_textdomain() {
-    load_plugin_textdomain('botwriter', false, dirname(plugin_basename(__FILE__)) . '/languages');
-}
+
 
 if (!function_exists('deactivate_plugins')) {
     require_once ABSPATH . 'wp-admin/includes/plugin.php';
@@ -67,7 +83,6 @@ if (!function_exists('deactivate_plugins')) {
 function botwriter_enqueue_styles(){
     $my_plugin_dir = plugin_dir_url(__FILE__);
     $screen = get_current_screen();
-
     $slug = $screen->id;
 	
     // Only enqueue styles for a specific admin screen
@@ -122,7 +137,7 @@ function botwriter_add_admin_menu() {
       'botwriter_form_page_handler' // Callback function to display content
     );
 
-    
+    /* for debugging 
     add_submenu_page('botwriter_menu', 
      __('Test_call', 'botwriter'), // Translatable page title
      __('Test_call', 'botwriter'), // Translatable menu title
@@ -130,6 +145,7 @@ function botwriter_add_admin_menu() {
       'botwriter_prueba',// Page slug
       'botwriter_prueba' // Callback function to display content
     );
+    */
     
     
     add_submenu_page('botwriter_menu',
@@ -1158,7 +1174,7 @@ function botwriter_send2_data_to_server($data) {
             
             // other results, inqueue, pending, etc
             $now=current_time('timestamp');
-            $last_execution_time = strtotime($result["last_execution_time"]);
+            $last_execution_time = strtotime($data["last_execution_time"]);
             $diff = $now - $last_execution_time;
             if ($diff > 60 * 5) { // 5 minutes
                     $data["task_status"]="error";
@@ -1236,12 +1252,12 @@ function botwriter_attach_image_to_post($post_id, $image_url, $post_title) {
             $upload_dir = wp_upload_dir();
             $filename = sanitize_title($post_title) . '.jpg';
             
-            if (wp_mkdir_p($upload_dir['path'])) {
+            if (wp_mkdir_p($upload_dir['path'])) { 
                 $file = $upload_dir['path'] . '/' . $filename;                
             } else {
                 $file = $upload_dir['basedir'] . '/' . $filename;                
             }
-            
+             
             global $wp_filesystem;
             if ( ! function_exists( 'WP_Filesystem' ) ) {
                 require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -1270,69 +1286,8 @@ function botwriter_attach_image_to_post($post_id, $image_url, $post_title) {
             
         }
     }
-  
+   
     
-    if (!function_exists('sanitize_textarea_field')) {
-        function sanitize_textarea_field($str) {
-            // Ensure the value is a string
-            if (!is_string($str)) {
-                return '';
-            }
-    
-            // Remove spaces at the beginning and end
-            $str = trim($str);
-    
-            // Undo HTML entities to avoid double encoding
-            $str = wp_specialchars_decode($str, ENT_QUOTES);
-    
-            // Convert special characters to their HTML equivalents to avoid malicious code
-            $str = htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
-    
-            // Remove control characters
-            $str = preg_replace('/[\x00-\x1F\x7F]/', '', $str);
-    
-            // Return the sanitized string
-            return $str;
-        }
-    }
-    if (!function_exists('wp_unslash')) {
-        /**
-         * Basic replica of the wp_unslash() function from WordPress.
-         *
-         * This function removes the backslashes added by PHP for escaped values.
-         *
-         * @param string|array $value The string or array that needs to remove the backslashes.
-         * @return string|array The value without the backslashes.
-         */
-        function wp_unslash($value) {
-            if (is_array($value)) {
-                return array_map('wp_unslash', $value);
-            }
-            return stripslashes($value);
-        }
-    }
-
  
-    if (!function_exists('str_contains')) {
-        /**
-         * Checks if a string contains a specific substring.
-         *
-         * @param string $haystack The string to search in.
-         * @param string $needle The substring to search for.
-         * @return bool True if $needle is in $haystack, false otherwise.
-         */
-        function str_contains($haystack, $needle) {
-            // Ensure the parameters are strings
-            if (!is_string($haystack) || !is_string($needle)) {
-                return false;
-            }
     
-            // If the substring is empty, always return false
-            if ($needle === '') {
-                return false;
-            }
-    
-            return strpos($haystack, $needle) !== false;
-        }
-    }
 ?>
