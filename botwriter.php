@@ -3,7 +3,7 @@
 Plugin Name: BotWriter
 Plugin URI:  https://www.wpbotwriter.com
 Description: Plugin for automatically generating posts using artificial intelligence. Create content from scratch with AI and generate custom images. Optimize content for SEO, including tags, titles, and image descriptions. Advanced features like ChatGPT, automatic content creation, image generation, SEO optimization, and AI training make this plugin a complete tool for writers and content creators.
-Version: 1.2.8
+Version: 1.2.9
 Author: estebandezafra
 Requires PHP: 7.0
 License:           GPL v2 or later
