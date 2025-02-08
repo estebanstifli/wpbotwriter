@@ -37,7 +37,8 @@ function botwriter_logs_page_handler() {
 
 class botwriter_Logs_Table extends WP_List_Table {
 
-    private $logs_data;
+    
+    private $table_data;
 
     public function __construct() {
         parent::__construct(array(
@@ -83,31 +84,66 @@ class botwriter_Logs_Table extends WP_List_Table {
     }
     
     
-    public function prepare_items() {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'botwriter_logs';
-        
-        
-        $this->logs_data = $wpdb->get_results("SELECT * FROM {$table_name}", ARRAY_A);
+    function prepare_items()
+    {
+        //data
+        if ( isset( $_POST['s'] ) && isset( $_POST['_wpnonce'] ) && wp_verify_nonce( sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'botwriter_nonce' ) ) {
+          $search_query = sanitize_text_field(wp_unslash($_POST['s']));
+          $this->table_data = $this->get_table_data($search_query);
+        } else {
+          $this->table_data = $this->get_table_data();
+        }
+      
+
+        $columns = $this->get_columns();
+        $hidden = ( is_array(get_user_meta( get_current_user_id(), 'managetoplevel_page_list_tablecolumnshidden', true)) ) ? get_user_meta( get_current_user_id(), 'managetoplevel_page_list_tablecolumnshidden', true) : array();
+        $sortable = $this->get_sortable_columns();
+        $primary  = 'name';
+        $this->_column_headers = array($columns, $hidden, $sortable, $primary);
+        $this->process_bulk_action();
+        $this->table_data = $this->get_table_data();
+
         usort($this->table_data, array($this, 'usort_reorder'));
 
-        // Set up pagination
-        $per_page = 10;
+        /* pagination */ 
+        $per_page = $this->get_items_per_page('elements_per_page', 10);
         $current_page = $this->get_pagenum();
-        $total_items = count($this->logs_data);
-        
-        $this->logs_data = array_slice($this->logs_data, (($current_page - 1) * $per_page), $per_page);
-        
+        $total_items = count($this->table_data);
+
+        $this->table_data = array_slice($this->table_data, (($current_page - 1) * $per_page), $per_page);
+
         $this->set_pagination_args(array(
-            'total_items' => $total_items,
-            'per_page'    => $per_page,
-            'total_pages' => ceil($total_items / $per_page),
+                'total_items' => $total_items, // total number of items
+                'per_page'    => $per_page, // items to show on a page
+                'total_pages' => ceil( $total_items / $per_page ) // use ceil to round up
         ));
         
-        // Set up column headers
-        $this->_column_headers = array($this->get_columns(), array(), $this->get_sortable_columns());
-        $this->items = $this->logs_data;
+        $this->items = $this->table_data;
     }
+
+          // Get table data
+          private function get_table_data( $search = '' ) {
+            global $wpdb;
+        
+            $table = $wpdb->prefix."botwriter_logs";
+            
+        
+            if ( ! empty( $search ) ) {
+                $prepared_search = $wpdb->esc_like( $search );
+                $prepared_search = '%' . $wpdb->esc_like( $search ) . '%';
+        
+                return $wpdb->get_results(
+                    $wpdb->prepare(
+                        "SELECT * FROM {$table} WHERE task_name LIKE %s ",
+                        $prepared_search
+                    ),
+                    ARRAY_A
+                );
+            } else {         
+              return $wpdb->get_results("SELECT * FROM {$table}", ARRAY_A);                            
+            }
+        }
+    
 
           // Sorting function
           function usort_reorder($a, $b)
