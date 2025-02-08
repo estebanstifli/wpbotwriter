@@ -86,18 +86,10 @@ class botwriter_Logs_Table extends WP_List_Table {
     public function prepare_items() {
         global $wpdb;
         $table_name = $wpdb->prefix . 'botwriter_logs';
-        $oder='desc';
-        $orderby='created_at';
-
-        // Get and sanitize sorting parameters
-        $orderby = isset($_GET['orderby']) ? sanitize_text_field(wp_unslash($_GET['orderby'])) : 'created_at';
-        $orderby = esc_sql($orderby);
-        $order = isset($_GET['order']) ? sanitize_text_field(wp_unslash($_GET['order'])) : 'desc';
-        $order = esc_sql($order);
         
         
-        $this->logs_data = $wpdb->get_results("SELECT * FROM {$table_name} ORDER BY $orderby $order", ARRAY_A);
-        
+        $this->logs_data = $wpdb->get_results("SELECT * FROM {$table_name}", ARRAY_A);
+        usort($this->table_data, array($this, 'usort_reorder'));
 
         // Set up pagination
         $per_page = 10;
@@ -116,6 +108,32 @@ class botwriter_Logs_Table extends WP_List_Table {
         $this->_column_headers = array($this->get_columns(), array(), $this->get_sortable_columns());
         $this->items = $this->logs_data;
     }
+
+          // Sorting function
+          function usort_reorder($a, $b)
+          { 
+              // If no sort, default to task_name          
+              $sanitized_orderby = isset($_GET['orderby']) ? sanitize_text_field(wp_unslash($_GET['orderby'])) : '';
+    
+              $orderby = (!empty($sanitized_orderby)) ? $sanitized_orderby : 'created_at';
+      
+              $order = isset($_GET['order']) ? sanitize_text_field(wp_unslash($_GET['order'])) : 'desc  ';
+    
+              // filtrar order solo asd o desc
+                $order = in_array($order, array('asc', 'desc')) ? $order : 'desc';
+                // filter orderby only allowed columns
+                $orderby = in_array($orderby, array('created_at', 'task_status', 'aigenerated_title')) ? $orderby : 'task_name';
+                
+    
+              
+      
+              // Determine sort order
+              $result = strcmp($a[$orderby], $b[$orderby]);
+      
+              // Send final sort direction to usort
+              return ($order === 'asc') ? $result : -$result;
+          }
+    
     
     public function column_default($item, $column_name) {
         // Default handler for columns
@@ -185,6 +203,7 @@ class botwriter_Logs_Table extends WP_List_Table {
         return array(
             'created_at' => array('created_at', true),
             'task_status' => array('task_status', false),
+            'aigenerated_title' => array('aigenerated_title', false),
         );
     }
 
@@ -327,5 +346,3 @@ function botwriter_logs_get($id) {
 
     return $log;
 }
-
-?>

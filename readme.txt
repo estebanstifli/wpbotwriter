@@ -4,7 +4,7 @@ Donate link: https://wpbotwriter.com
 Tags: automation, AI, robot, content generation
 Requires at least: 4.0
 Tested up to: 6.7
-Stable tag: 1.2.9
+Stable tag: 1.3.0
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -40,6 +40,11 @@ Yes, you can configure certain parameters to guide the content creation process.
 
 = 1.2.9 =
 * Various revisions to comply with WordPress.org guidelines
+
+= 1.3.0 =
+* Various bug fixes
+
+
 
 
 

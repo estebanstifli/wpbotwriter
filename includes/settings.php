@@ -23,7 +23,7 @@ function botwriter_settings_page_handler() {
             'botwriter_paused_tasks' => isset($_POST['botwriter_paused_tasks']) ? sanitize_text_field(wp_unslash($_POST['botwriter_paused_tasks'])) : '2',
         );
 
-        $settings["plan_id"]=0; // free plan
+        $settings["botwriter_plan_id"]=0; // free plan
 
         foreach ($settings as $key => $value) {
             update_option($key, $value);            
@@ -36,9 +36,9 @@ function botwriter_settings_page_handler() {
     if (substr(get_option('botwriter_api_key'), 0, 2) == 'PK') {
         // obtiene el plan_id de la api key, que son las 6 letras despues de PK
         $plan_id = substr(get_option('botwriter_api_key'), 2, 6);        
-        update_option('plan_id', $plan_id);
+        update_option('botwriter_plan_id', $plan_id);
     } else {
-        update_option('plan_id', 0);
+        update_option('botwriter_plan_id', 0);
     }
 
     // active or deactivate cron job
