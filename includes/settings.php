@@ -88,7 +88,7 @@ function botwriter_settings_page_handler() {
         <div id='subscription'>
         
         <?php        
-        if (get_option('plan_id') == 0) {
+        if (get_option('botwriter_plan_id') == 0) {
             echo "<h3>Free Plan</h3>";
             $site_url = urlencode(get_site_url());
             echo '<a href="https://wpbotwriter.com" target="_blank" class="button-primary">Upgrade to Pro Plan</a> to get more features.';
