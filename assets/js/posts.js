@@ -104,12 +104,14 @@ function updatePostLength() {
 function toggleCustomStyleInput() {
     var selectElement = document.getElementById("narration");
     var customInput = document.getElementById("customStyleInput");
-
-    if (selectElement.value === "Custom") {
-        customInput.style.display = "block";
-    } else {
-        customInput.style.display = "none";
-    }
+    
+    if (selectElement) {
+        if (selectElement.value === "Custom") {
+            customInput.style.display = "block";
+        } else {
+            customInput.style.display = "none";
+        }
+    }    
 }
 
 function preSelectedOptions() {

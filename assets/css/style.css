@@ -273,3 +273,146 @@ ol.example li.placeholder:before {
   font-size: 14px;
 }
 
+
+.super-article {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  padding: 15px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.super-number {
+  width: 50px;
+  height: 50px;
+  border: 2px solid #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: bold;
+  margin-right: 20px;
+  border-radius: 5px;
+}
+
+.super-content {
+  flex-grow: 1;
+}
+
+.super-title {
+  margin: 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.super-text {
+  margin: 5px 0 0;
+  color: #555;
+}
+
+.super-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.super-actions button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 22px;
+  transition: transform 0.2s, color 0.2s;
+}
+
+.super-actions .super-edit:hover {
+  transform: scale(1.2);
+  color: #007bff;
+}
+
+.super-actions .super-delete:hover {
+  transform: scale(1.2);
+  color: #dc3545;
+}
+
+.super-title-input {
+  width: 100%;
+  font-size: 20px;
+  font-weight: bold;
+  border: 1px solid #ccc;
+  padding: 5px;
+  border-radius: 4px;
+  margin-bottom: 5px;
+}
+
+.super-text-input {
+  width: 100%;
+  height: 80px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  padding: 5px;
+  border-radius: 4px;
+  resize: vertical;
+}
+
+.super-article.editing {
+  background-color: #f0f8ff;  /* Ligero color de fondo para indicar que está en edición */
+  border-color: #007bff;
+}
+
+/* Efecto visual al actualizar */
+.super-article.update-success {
+  background-color: #cce5ff;  /* Azul claro */
+  border-color: #007bff;  /* Azul más fuerte */
+  transition: background-color 2s ease-out, border-color 2s ease-out;
+}
+
+/* Estado normal después del fadeout */
+.super-article {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+ 
+.super-article.delete-fadeout {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 1s ease-out, transform 1s ease-out;
+}
+
+
+
+
+.super-ia {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  padding: 15px;
+  margin-bottom: 15px;    
+}
+
+.super-ia img { 
+  margin-bottom: 10px;
+  position: relative;
+  top: -20px; /* Mueve la imagen hacia arriba */
+}
+
+
+.super-task-welcome-box {
+  border: 2px solid #0073aa;
+  padding: 20px;
+  background-color: #f1f1f1;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+.super-task-welcome-box h3  {
+  color: #0073aa;
+}
+.super-task-welcome-box h4  {
+  color: #0073aa;
+}
+.super-task-welcome-box p {
+  font-size: 16px;
+  line-height: 1.5;
+}

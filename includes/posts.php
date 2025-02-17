@@ -21,7 +21,7 @@ function botwriter_automatic_posts_page()
         <h2>
             <?php esc_html_e('Tasks', 'botwriter'); ?>
             <a class="add-new-h2"
-                href="<?php echo esc_url(get_admin_url(get_current_blog_id(), 'admin.php?page=botwriter_automatic_post_new')); ?>">
+                href="<?php echo esc_url(get_admin_url(get_current_blog_id(), 'admin.php?page=botwriter_addnew_page')); ?>">
                 <?php esc_html_e('Add new', 'botwriter'); ?>
             </a>
         </h2>
@@ -314,10 +314,7 @@ function botwriter_post_form_meta_box_handler($item)
 
 
 
-<tbody >
-<form>
-  <div class="form2bc">
-  <div class="container">
+<div class="container">
   <form class="row g-3">
       <?php
       //Get admin domain name
@@ -815,17 +812,6 @@ $default_language_code = substr($locale, 0, 2); // Obtiene el código del idioma
   </form>
 </div>
 
-
-
-
-  
-
-
-
-</form>
-
-	
-</tbody>
 <?php
 }
 

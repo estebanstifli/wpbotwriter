@@ -94,15 +94,16 @@ function botwriter_settings_page_handler() {
             echo '<a href="https://wpbotwriter.com" target="_blank" class="button-primary">Upgrade to Pro Plan</a> to get more features.';
         }
         else {
-            echo "<h3>Pro Plan</h3>";
-            // poner un boton que llama al javascript para obtener los datos del usuario
+            echo "<h3>Pro Plan</h3>";        
             echo '<a href="javascript:void(0);" onclick="botwriter_getUserData();" class="button-primary">Get Info of your Plan</a>';            
         }
         ?>
         
         </div>        
+        <div id="response_div" style="min-height: 50px; height: auto;"></div>
+        <h3>Other Tools</h3>        
+        <a href="javascript:void(0);" onclick="botwriter_reset_super1();" class="button-primary">Reset Plugin Super Task</a>
 
-        <div id="response_div" style="min-height: 300px; height: auto;"></div>
     </div>
     <?php
 }

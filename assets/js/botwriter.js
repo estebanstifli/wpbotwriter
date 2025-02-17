@@ -304,56 +304,17 @@ function refreshWebsiteCategories() {
   });
 }
 
-
-// Function to filter packages based on the selected type
-function filterPackages(type) {
-  // Hide all packages
-  var packages = document.querySelectorAll('.package');
-  packages.forEach(function(pkg) {
-    pkg.style.display = 'none';
-  });
-
-  // Show only the selected type of packages
-  var selectedPackages = document.querySelectorAll('.' + type);
-  selectedPackages.forEach(function(pkg) {
-    pkg.style.display = 'block';
-  });
-
-  // Update the active state of the tabs
-  var tabs = document.querySelectorAll('.tablinks');
-  tabs.forEach(function(tab) {
-    tab.classList.remove('active');
-  });
-
-  document.querySelector('button[onclick="filterPackages(\'' + type + '\')"]').classList.add('active');
-}
-
-// Show monthly packages by default when the page loads
-//document.addEventListener('DOMContentLoaded', function() {
-//  filterPackages('monthly');
-//});
-
-// Toggle visibility of fields based on the selected element type
-/*
-document.addEventListener('DOMContentLoaded', function() {
-  const elementTypeSelect = document.getElementById('element_type');
-  const promptContainer = document.getElementById('prompt-container');
-  const contentContainer = document.getElementById('content-container');
-
-  function toggleFields() {
-      if (elementTypeSelect.value === 'static-content') {
-          promptContainer.style.display = 'none';
-          contentContainer.style.display = 'block';
-      } else {
-          promptContainer.style.display = 'block';
-          contentContainer.style.display = 'none';
-      }
-  }
-
-  // Trigger toggleFields on change
-  elementTypeSelect.addEventListener('change', toggleFields);
   
-  // Initial setup based on default selection
-  toggleFields();
-});
-*/
+ 
+function botwriter_reset_super1() {       
+  jQuery.post(botwriter_ajax.ajax_url, {
+      action: 'botwriter_eliminar_super1',
+      _ajax_nonce: botwriter_ajax.nonce
+  })
+  .done(function(response) {
+      console.log("ok");
+  })
+  .fail(function(xhr, status, error) {
+      console.error('AJAX request error:', status, error);
+  });
+};

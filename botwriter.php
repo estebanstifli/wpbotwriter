@@ -3,7 +3,7 @@
 Plugin Name: BotWriter
 Plugin URI:  https://www.wpbotwriter.com
 Description: Plugin for automatically generating posts using artificial intelligence. Create content from scratch with AI and generate custom images. Optimize content for SEO, including tags, titles, and image descriptions. Advanced features like ChatGPT, automatic content creation, image generation, SEO optimization, and AI training make this plugin a complete tool for writers and content creators.
-Version: 1.3.0
+Version: 1.3.1
 Author: estebandezafra
 Requires PHP: 7.0
 License:           GPL v2 or later
@@ -18,6 +18,8 @@ if (!defined('ABSPATH')) {
 }
 
 define('BOTWRITER_URL', plugin_dir_url(__FILE__));
+define('BOTWRITER_API_URL', "https://wpbotwriter.com/public/");
+
 
 
 require plugin_dir_path( __FILE__ ) . 'includes/posts.php';
@@ -25,25 +27,34 @@ require plugin_dir_path( __FILE__ ) . 'includes/functions.php';
 require plugin_dir_path( __FILE__ ) . 'includes/settings.php';
 require plugin_dir_path( __FILE__ ) . 'includes/logs.php';
 require plugin_dir_path( __FILE__ ) . 'includes/announcements.php';
+require plugin_dir_path( __FILE__ ) . 'includes/super.php';
+require plugin_dir_path( __FILE__ ) . 'includes/addnew.php';
+
 
 
 
 // Enqueque JS Files
 function botwriter_enqueue_scripts() { 
     $my_plugin_dir = plugin_dir_url(__FILE__);        
-    $screen = get_current_screen();
-    $slug = $screen->id;
-
-
+	$screen = get_current_screen();
+    $slug = $screen->id;							   
+	
+    	
 	
     wp_register_script( 'bootstrapjs',$my_plugin_dir.'/assets/js/bootstrap.min.js' , array('jquery'), false, true );
     wp_enqueue_script( 'bootstrapjs' );
+
     
     wp_register_script( 'botwriter_bootstrap_bundle',$my_plugin_dir.'/assets/js/bootstrap.bundle.min.js' , array('jquery','botwriter_jquery_ui'), false, true );
     wp_enqueue_script( 'botwriter_bootstrap_bundle' );
 
+
     wp_register_script( 'botwriter_botwriter',$my_plugin_dir.'/assets/js/botwriter.js' , array('jquery'), false, true );
     wp_enqueue_script( 'botwriter_botwriter' );
+    wp_localize_script('botwriter_botwriter', 'botwriter_ajax', array(
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce'    => wp_create_nonce('botwriter_super_nonce')            
+    ));
 
     wp_enqueue_script('botwriter-admin-ajax-status', $my_plugin_dir.'/assets/js/admin-ajax-status.js', ['jquery'], null, true);
     wp_localize_script('botwriter-admin-ajax-status', 'botwriter_ajax_object', [
@@ -52,8 +63,8 @@ function botwriter_enqueue_scripts() {
     ]);
 
 
-    if ($slug==="botwriter_page_botwriter_announcements") {
-        wp_enqueue_script('botwriter-dismiss-script', $my_plugin_dir .  'js/botwriter_dismiss.js', array('jquery'), null, true);    
+    if (strpos($slug, 'botwriter') !== false) {
+        wp_enqueue_script('botwriter-dismiss-script', $my_plugin_dir .  '/assets/js/botwriter_dismiss.js', array('jquery'), null, true);    
         wp_localize_script('botwriter-dismiss-script','botwriterData',
             array(
                 'nonce'   => wp_create_nonce('botwriter_dismiss_nonce'),
@@ -62,16 +73,25 @@ function botwriter_enqueue_scripts() {
         );
     }
 
-    if ($slug==="botwriter_page_botwriter_automatic_post_new") {
+						
+    if ($slug==="admin_page_botwriter_automatic_post_new" || $slug === 'admin_page_botwriter_super_page') {
         wp_register_script('botwriter_automatic_posts', $my_plugin_dir . 'assets/js/posts.js', array('jquery'), false, true);
         wp_enqueue_script('botwriter_automatic_posts');
+    }
+																												   
+
+    if ($slug === 'admin_page_botwriter_super_page') { 
+        wp_register_script('botwriter_super', $my_plugin_dir . 'assets/js/super.js', array('jquery'), false, true);
+        wp_enqueue_script('botwriter_super');         
+        wp_localize_script('botwriter_super', 'botwriter_super_ajax', array(
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce'    => wp_create_nonce('botwriter_super_nonce')            
+        ));
     }
     
 
 }
 add_action('admin_enqueue_scripts','botwriter_enqueue_scripts');
-
-
 
 
 
@@ -83,10 +103,14 @@ if (!function_exists('deactivate_plugins')) {
 function botwriter_enqueue_styles(){
     $my_plugin_dir = plugin_dir_url(__FILE__);
     $screen = get_current_screen();
+
     $slug = $screen->id;
 	
+
     // Only enqueue styles for a specific admin screen
-    if($slug === 'botwriter_page_botwriter_automatic_post_new' || $slug === 'botwriter_page_botwriter_automatic_posts' || $slug === 'botwriter_page_botwriter_prueba' || $slug === 'botwriter_page_botwriter_settings' || $slug === 'botwriter_page_botwriter_logs' || $slug === 'botwriter_page_check_Api') {    
+
+    if (strpos($slug, 'botwriter') !== false) {
+
         // Register and enqueue styles with dynamic versioning for better caching
         wp_register_style('botwriter_bootstrap', $my_plugin_dir . 'assets/css/bootstrap.min.css', array(), filemtime(plugin_dir_path(__FILE__) . 'assets/css/bootstrap.min.css'));
         wp_enqueue_style('botwriter_bootstrap');
@@ -108,63 +132,75 @@ add_action('admin_enqueue_scripts', 'botwriter_enqueue_styles');
 
   
 // Hook to add the admin menu
-add_action('admin_menu', 'botwriter_add_admin_menu');
-
-function botwriter_add_admin_menu() {
+add_action('admin_menu', function() {
     add_menu_page(
-        __('BotWriter', 'botwriter'),  // Translatable menu title
-        __('BotWriter', 'botwriter'),  // Translatable page title
-        'manage_options',                  // Capabilities (only administrators)
-        'botwriter_menu',            // Page slug
-        'botwriter_admin_page',          // Callback function to display content
-        plugin_dir_url(__FILE__) . '/assets/images/icono25.png', // Path to custom icon
-        90                                 // Position in the menu
+        __('BotWriter', 'botwriter'),  
+        __('BotWriter', 'botwriter'),
+        'manage_options',
+        'botwriter_menu',
+        'botwriter_admin_page',
+        plugin_dir_url(__FILE__) . '/assets/images/icono25.png',
+        90
     );
 
     add_submenu_page('botwriter_menu',
-     __('Automatic Posts', 'botwriter'), // Translatable page title
-     __('Automatic Posts', 'botwriter'), // Translatable menu title
-     'manage_options', // Capabilities (only administrators)
-      'botwriter_automatic_posts',// Page slug
-      'botwriter_automatic_posts_page' // Callback function to display content
+        __('Add New', 'botwriter'),  
+        __('Add New', 'botwriter'),
+        'manage_options',
+        'botwriter_addnew_page',
+        'botwriter_addnew_page_handler'
+    );
+
+    add_submenu_page(null,
+        __('Super Task AI', 'botwriter'),
+        __('Super Task AI', 'botwriter'),
+        'manage_options',
+        'botwriter_super_page',
+        'botwriter_super_page_handler'
     );
 
     add_submenu_page('botwriter_menu',
-     __('Add New', 'botwriter'), // Translatable page title
-     __('Add New', 'botwriter'), // Translatable menu title
-     'manage_options', // Capabilities (only administrators)
-      'botwriter_automatic_post_new',// Page slug
-      'botwriter_form_page_handler' // Callback function to display content
+        __('Tasks AI', 'botwriter'),
+        __('Tasks AI', 'botwriter'),
+        'manage_options',
+        'botwriter_automatic_posts',
+        'botwriter_automatic_posts_page'
     );
 
-    /* for debugging 
+    /* // for development
     add_submenu_page('botwriter_menu', 
-     __('Test_call', 'botwriter'), // Translatable page title
-     __('Test_call', 'botwriter'), // Translatable menu title
-     'manage_options', // Capabilities (only administrators)
-      'botwriter_prueba',// Page slug
-      'botwriter_prueba' // Callback function to display content
+        __('Test Call', 'botwriter'),
+        __('Test Call', 'botwriter'),
+        'manage_options',
+        'botwriter_prueba',
+        'botwriter_prueba'
     );
     */
-    
-    
-    add_submenu_page('botwriter_menu',
-     __('Settings', 'botwriter'), // Translatable page title
-     __('Settings', 'botwriter'), // Translatable menu title
-     'manage_options', // Capabilities (only administrators)
-      'botwriter_settings',// Page slug
-      'botwriter_settings_page_handler' // Callback function to display content
+
+    add_submenu_page(null,                                 
+        __('Add New Task', 'botwriter'),
+        __('Add New Task', 'botwriter'),
+        'manage_options',                
+        'botwriter_automatic_post_new',        
+        'botwriter_form_page_handler'          
     );
 
     add_submenu_page('botwriter_menu',
-     __('Logs', 'botwriter'), // Translatable page title
-     __('Logs', 'botwriter'), // Translatable menu title
-     'manage_options', // Capabilities (only administrators)
-      'botwriter_logs',// Page slug
-      'botwriter_logs_page_handler' // Callback function to display content
-      
+        __('Settings', 'botwriter'),
+        __('Settings', 'botwriter'),
+        'manage_options',
+        'botwriter_settings',
+        'botwriter_settings_page_handler'
     );
-}
+
+    add_submenu_page('botwriter_menu',
+        __('Logs', 'botwriter'),
+        __('Logs', 'botwriter'),
+        'manage_options',
+        'botwriter_logs',
+        'botwriter_logs_page_handler'
+    );
+});
 
 
 
@@ -211,7 +247,7 @@ function botwriter_admin_page() {
             <li><?php echo esc_html__('✔ Easy-to-use interface with no technical knowledge required', 'botwriter'); ?></li>
         </ul>
         <h2><?php echo esc_html__('How to Get Started?', 'botwriter'); ?></h2>
-        <p><?php echo esc_html__('1. Create tasks in Automatic Post.', 'botwriter'); ?></p>        
+        <p><?php echo esc_html__('1. Create tasks in Add New.', 'botwriter'); ?></p>        
         <p><?php echo esc_html__('2. The plugin will automatically generate the posts!', 'botwriter'); ?></p>
         <p><?php echo esc_html__('3. (Optional) Configure the settings if needed.', 'botwriter'); ?></p>
         <p><?php echo esc_html__('4. (Optional) Check the logs to see the status of the tasks.', 'botwriter'); ?></p>
@@ -227,12 +263,20 @@ function botwriter_admin_page() {
 
 // Hook that runs on plugin activation
 register_activation_hook(__FILE__, 'botwriter_plugin_activate');
-
 function botwriter_plugin_activate() {    
+    botwriter_activate_apikey_and_defaults();
+    botwriter_create_table();
+    if (!botwriter_super1_check_task_exist()) {
+        botwriter_super1_create_first_task();
+    }
+}
+
+
+function botwriter_activate_apikey_and_defaults() {    
     $site_url = get_site_url();
     $admin_email = get_option('admin_email');
     
-    $remote_url = 'https://wpbotwriter.com/public/activation.php';
+    $remote_url = BOTWRITER_API_URL . 'activation.php';
     
     //options
     $api_key = get_option('botwriter_api_key');    
@@ -477,12 +521,34 @@ if (!class_exists('WP_List_Table')) {
             dbDelta($logs_sql);
         }
 
+        
+
+        $tasks_table_name = $wpdb->prefix . 'botwriter_super';        
+        if ($wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $tasks_table_name)) !== $tasks_table_name) {
+            $charset_collate = $wpdb->get_charset_collate();
+
+            $tasks_sql = "CREATE TABLE $tasks_table_name (
+                `id` int(11) NOT NULL AUTO_INCREMENT,
+                `id_task` int(11) NOT NULL,
+                `id_log` int(11) NOT NULL,
+                `title` VARCHAR(255) NOT NULL,
+                `content` TEXT NOT NULL,
+                `category_id` VARCHAR(255),
+                `category_name` VARCHAR(255), 
+                `task_status` VARCHAR(255),               
+                PRIMARY KEY (`id`)
+            ) $charset_collate;";
+
+            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+            dbDelta($tasks_sql);
+        }
+
     } catch (Exception $e) {
         
         //error_log("Error creating botwriter tables: " . $e->getMessage());
     }
   }
-  register_activation_hook(__FILE__, 'botwriter_create_table');
+  
   
 
 
@@ -497,8 +563,7 @@ class botwriter_tasks_Table extends WP_List_Table
                 'cb'            => '<input type="checkbox" />',
                 'writer'        => __('Writer', 'botwriter'),
                 'task_name'          => __('Task Name', 'botwriter'),                                
-                'days'          => __('Days', 'botwriter'),
-                'category_id'   => __('Categories', 'botwriter'),
+                'days'          => __('Days', 'botwriter'),                
                 'times_per_day' => __('Times per Day', 'botwriter'),
                 'status'        => __('Status', 'botwriter') 
 
@@ -554,7 +619,13 @@ class botwriter_tasks_Table extends WP_List_Table
             $slug='botwriter_automatic_post_new';
             $page = isset($_REQUEST['page']) ? sanitize_text_field(wp_unslash($_REQUEST['page'])) : '';
 
-            $url_edit= wp_nonce_url('?page=' . $slug . '&id=' . $item['id'], "botwriter_tasks_action");
+            if ($item["website_type"] == 'super2') {
+                $slug='botwriter_super_page';
+                $url_edit= wp_nonce_url('?page=' . $slug . '&id=' . $item['id'], "botwriter_tasks_action");
+            }  else {
+                $url_edit= wp_nonce_url('?page=' . $slug . '&id=' . $item['id'], "botwriter_tasks_action");
+            }
+
             $url_delete= wp_nonce_url('?page=' . $page . '&action=delete&id=' . $item['id'], "botwriter_tasks_action");
 
             $actions = array(
@@ -602,7 +673,7 @@ class botwriter_tasks_Table extends WP_List_Table
             
         }
 
-
+        /*
     function column_category_id($item) {
         $categories = get_categories();
         $category_name = '';
@@ -616,6 +687,7 @@ class botwriter_tasks_Table extends WP_List_Table
         $category_name = rtrim($category_name, ', ');
         return $category_name;
     }
+        */
 
 
     
@@ -703,8 +775,7 @@ class botwriter_tasks_Table extends WP_List_Table
     public function get_sortable_columns(){ 
       $sortable_columns = array(
             'task_name'  => array('task_name', false),            
-            'days'  => array('days', false),
-            'category_id'   => array('category_id', false),        
+            'days'  => array('days', false),            
             'id'   => array('id', true)
       );
       return $sortable_columns;
@@ -723,7 +794,7 @@ class botwriter_tasks_Table extends WP_List_Table
           // filtrar order solo asd o desc
             $order = in_array($order, array('asc', 'desc')) ? $order : 'asc';
             // filter orderby only allowed columns
-            $orderby = in_array($orderby, array('task_name', 'days', 'category_id', 'id')) ? $orderby : 'task_name';
+            $orderby = in_array($orderby, array('task_name', 'days', 'id')) ? $orderby : 'task_name';
             
 
           
@@ -907,8 +978,17 @@ register_deactivation_hook(__FILE__, 'botwriter_scheduled_events_plugin_deactiva
                     $event["id_task"] = $task["id"];              
                     $event["intentosfase1"] = 0;
                     $id_log=botwriter_logs_register($event);  // create log in db
-                    $event["id"]=$id_log;                
+                    $event["id"]=$id_log;
+                    if ($task["website_type"] == 'super2') { //supertask                                                
+                        $event = botwriter_super_prepare_event($event);
+                        $id_log=botwriter_logs_register($event,$id_log);  //  actualizamos log con los datos de super2
+                    }
                     
+                    
+                    
+                    
+                    
+
                     botwriter_send1_data_to_server( (array) $event);                                      
                     // Update execution count in the database and last_execution_time
                     $current_time = gmdate('Y-m-d H:i:s', current_time('timestamp'));
@@ -989,7 +1069,7 @@ function botwriter_send1_data_to_server($data) {
     
     
     Global $botwriter_version;
-    $remote_url = 'https://wpbotwriter.com/public/redis_api_cola.php';
+    $remote_url = BOTWRITER_API_URL . 'redis_api_cola.php';
      
     if (!function_exists('get_plugin_data')) {
         require_once(ABSPATH . 'wp-admin/includes/plugin.php');
@@ -1010,7 +1090,7 @@ function botwriter_send1_data_to_server($data) {
     $current_time = gmdate('Y-m-d H:i:s', current_time('timestamp'));            
     $data["last_execution_time"]=$current_time;
     
-    $last_execution_time = $data["last_execution_time"];    
+    $last_execution_time = $data["last_execution_time"];   
     
     
     $category_ids=array_map('intval', explode(',', $data['category_id']));
@@ -1035,8 +1115,11 @@ function botwriter_send1_data_to_server($data) {
         $data['post_length'] = $data['custom_post_length'];
     } 
 
-
-      
+    /*
+    echo "<pre>";
+    print_r($data);  
+    echo "</pre>";
+    */
 
     $data["error"]= "";
 
@@ -1062,7 +1145,8 @@ function botwriter_send1_data_to_server($data) {
     $data["intentosfase1"]++;
     botwriter_logs_register($data, $data["id"]); 
     
-    $last_execution_time=$data["last_execution_time"];
+	$last_execution_time=$data["last_execution_time"];												  
+    
     
 
     if (is_wp_error($response)) {
@@ -1102,11 +1186,12 @@ function botwriter_send1_data_to_server($data) {
 
 // Function to send data to the server pass2
 function botwriter_send2_data_to_server($data) {  
+    Global $wpdb;
     
     $data['api_key'] = get_option('botwriter_api_key');
     $data["user_domainname"] = esc_url(get_site_url());
 
-    $remote_url =  'https://wpbotwriter.com/public/redis_api_finish.php';
+    $remote_url =  BOTWRITER_API_URL . 'redis_api_finish.php';
             
     $ssl_verify = get_option('botwriter_sslverify');
     if ($ssl_verify === 'no') {
@@ -1156,19 +1241,29 @@ function botwriter_send2_data_to_server($data) {
                 }
                 
                 botwriter_logs_register($data, $data["id"]);
-                return false; 
-            }
+                return false;  
+            }  
             
             // result completed
             if (isset($result["task_status"]) && $result["task_status"] == "completed") {
                 botwriter_logs_register($result, $data["id"]);                          
                 
                 $result=botwriter_logs_get($data["id"]);  // merge the result with the log
-                $post_id=botwriter_generate_post($result);
-                $result["id_post_published"]=$post_id;
-               
+
+                if ($result["website_type"] == "super1") {
+                    botwriter_super1_log_to_bd($result,$data["id"]);                    
+                } else {
+                    $post_id=botwriter_generate_post($result);
+                    $result["id_post_published"]=$post_id;
+                }
 
                 botwriter_logs_register($result, $data["id"]);               
+                if ($result["website_type"] == "super2") {
+                    //update tabla super poner el task_Status en completed
+                    $wpdb->update($wpdb->prefix . 'botwriter_super', ['task_status' => 'completed'], ['id_log' => $data["id"]]);
+                }
+
+
                 return $result;
             } 
             
@@ -1252,12 +1347,12 @@ function botwriter_attach_image_to_post($post_id, $image_url, $post_title) {
             $upload_dir = wp_upload_dir();
             $filename = sanitize_title($post_title) . '.jpg';
             
-            if (wp_mkdir_p($upload_dir['path'])) { 
+            if (wp_mkdir_p($upload_dir['path'])) {
                 $file = $upload_dir['path'] . '/' . $filename;                
             } else {
                 $file = $upload_dir['basedir'] . '/' . $filename;                
             }
-             
+            
             global $wp_filesystem;
             if ( ! function_exists( 'WP_Filesystem' ) ) {
                 require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -1286,8 +1381,164 @@ function botwriter_attach_image_to_post($post_id, $image_url, $post_title) {
             
         }
     }
-   
+  
     
+  
+    add_action('plugins_loaded', 'botwriter_check_update');
+    function botwriter_check_update() {        
+        if (!function_exists('get_plugin_data')) {
+            require_once(ABSPATH . 'wp-admin/includes/plugin.php');
+        }
+        
+        $plugin_data = get_plugin_data(__FILE__);
+        $plugin_version = $plugin_data['Version'];
+
+        // Get the previously installed version
+        $version_instalada = get_option('botwriter_version');
+        
+        if ($version_instalada != $plugin_version) {
+            botwriter_create_table(); 
+            update_option('botwriter_version', $plugin_version); // Actualizar la versión en la base de datos
+        }
+    }
+
+
  
+// new super functions
+add_action('wp_ajax_botwriter_actualizar_articulo', 'botwriter_actualizar_articulo_callback');
+
+function botwriter_actualizar_articulo_callback() {
+    check_ajax_referer('botwriter_super_nonce'); // Validamos el nonce para seguridad
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'botwriter_super';
     
+    $id      = intval($_POST['id']);
+    $title   = sanitize_text_field($_POST['title']);
+    $content = sanitize_text_field($_POST['content']);
+
+    $result = $wpdb->update(
+        $table_name,
+        array('title' => $title, 'content' => $content),
+        array('id' => $id)
+    );
+
+    if ($result !== false) {
+        wp_send_json_success('Artículo actualizado correctamente.');
+    } else {
+        wp_send_json_error('Error al actualizar el artículo.');
+    }
+
+    wp_die();
+}
+
+add_action('wp_ajax_botwriter_eliminar_articulo', 'botwriter_eliminar_articulo_callback');
+
+function botwriter_eliminar_articulo_callback() {
+    check_ajax_referer('botwriter_super_nonce'); // Validamos el nonce para seguridad
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'botwriter_super';
+
+    $id = intval($_POST['id']);
+
+    $result = $wpdb->delete($table_name, array('id' => $id));
+    // consultar cuantos registros con id_task=0
+    $result = $wpdb->get_results("SELECT * FROM $table_name WHERE id_task='0'");
+    $num_rows = count($result);
+    if ($num_rows == 0) {
+        // borramos en la tabla logs la tarea super1 si no hay articulos
+        $table_name_logs = $wpdb->prefix . 'botwriter_logs';
+        $wpdb->delete($table_name_logs, array('website_type' => 'super1'));        
+    }
+    
+    
+
+    if ($result !== false) {
+        wp_send_json_success('Artículo eliminado correctamente.');
+    } else {
+        wp_send_json_error('Error al eliminar el artículo.');
+    }
+
+    wp_die();
+}
+ 
+add_action('wp_ajax_botwriter_check_super1', 'botwriter_check_super1_callback');
+
+function botwriter_check_super1_callback() {    
+    check_ajax_referer('botwriter_super_nonce'); // Validamos el nonce para seguridad 
+    $estado_super1=botwriter_super1_check_task_finish();    
+    if ($estado_super1=="completed") {        
+        $response = botwriter_super1_view_articles_html();                
+        wp_send_json_success($response);
+        return;
+    } 
+    
+    if ($estado_super1=="error") {         
+        // borramos la tarea super1
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'botwriter_super';            
+        $wpdb->delete($table_name, array('id_task' => 0));        
+        wp_send_json_error("error");         
+        return;
+    }     
+    wp_send_json_error('inqueue');    
+
+    
+} 
+
+
+add_action('wp_ajax_botwriter_create_super1', 'botwriter_create_super1_callback');
+
+function botwriter_create_super1_callback() {    
+    check_ajax_referer('botwriter_super_nonce'); // Validamos el nonce para seguridad        
+    if (!isset($_POST['prompt']) || !isset($_POST['numarticles'])) {
+        wp_send_json_error('Missing required parameters.');
+        wp_die();
+    }
+    
+    $prompt = sanitize_text_field($_POST['prompt']);
+    $numarticles = intval($_POST['numarticles']);
+    if ($prompt=="Custom") {
+        $category_id = isset($_POST['category_id']) ? sanitize_text_field($_POST['category_id']) : '0';
+    }
+
+    
+    $title_prompt = $prompt;
+    $numarticles = intval($_POST['numarticles']);  
+    
+    if ($prompt=="Custom") {
+        $content_prompt = sanitize_text_field($_POST['custom_prompt']);
+    } else {
+        $info_blog = botwriter_get_info_blog();
+        $json_info_blog = json_encode($info_blog, JSON_PRETTY_PRINT);
+        $content_prompt = $json_info_blog;
+    }
+    $task_name = "Super1 Task " . current_time('Y-m-d H:i:s');
+    botwriter_super1_create_task($task_name, $title_prompt,$content_prompt, $numarticles, $category_id);
+
+    wp_send_json_success("Task created successfully: " . $title_prompt . " " . $content_prompt . " " . $numarticles . " " . $category_id);
+    
+
+}
+
+
+add_action('wp_ajax_botwriter_eliminar_super1', 'botwriter_eliminar_super1_y_logs0');
+
+function botwriter_eliminar_super1_y_logs0() {
+    check_ajax_referer('botwriter_super_nonce'); 
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'botwriter_super';
+    $table_name_logs = $wpdb->prefix . 'botwriter_logs';
+
+    $result = $wpdb->delete($table_name, array('id_task' => 0));
+    $result = $wpdb->delete($table_name_logs, array('website_type' => 'super1'));
+    
+    if ($result !== false) {
+        wp_send_json_success('Super1 task deleted successfully.');
+    } else {
+        wp_send_json_error('Error');
+    }
+    wp_die();
+}
+
+
 ?>

@@ -104,6 +104,7 @@ class botwriter_Logs_Table extends WP_List_Table {
         $this->table_data = $this->get_table_data();
 
         usort($this->table_data, array($this, 'usort_reorder'));
+																											  
 
         /* pagination */ 
         $per_page = $this->get_items_per_page('elements_per_page', 10);
@@ -111,6 +112,9 @@ class botwriter_Logs_Table extends WP_List_Table {
         $total_items = count($this->table_data);
 
         $this->table_data = array_slice($this->table_data, (($current_page - 1) * $per_page), $per_page);
+																   
+						   
+		 
 
         $this->set_pagination_args(array(
                 'total_items' => $total_items, // total number of items
@@ -124,6 +128,7 @@ class botwriter_Logs_Table extends WP_List_Table {
           // Get table data
           private function get_table_data( $search = '' ) {
             global $wpdb;
+											   
         
             $table = $wpdb->prefix."botwriter_logs";
             
@@ -131,6 +136,8 @@ class botwriter_Logs_Table extends WP_List_Table {
             if ( ! empty( $search ) ) {
                 $prepared_search = $wpdb->esc_like( $search );
                 $prepared_search = '%' . $wpdb->esc_like( $search ) . '%';
+															
+		   
         
                 return $wpdb->get_results(
                     $wpdb->prepare(
@@ -140,7 +147,10 @@ class botwriter_Logs_Table extends WP_List_Table {
                     ARRAY_A
                 );
             } else {         
-              return $wpdb->get_results("SELECT * FROM {$table}", ARRAY_A);                            
+              return $wpdb->get_results(
+                  $wpdb->prepare("SELECT * FROM {$table} WHERE website_type <> %s", 'super1'),
+                  ARRAY_A
+              );
             }
         }
     
@@ -229,7 +239,21 @@ class botwriter_Logs_Table extends WP_List_Table {
         } else {
             return esc_html($item['aigenerated_image']);
         }
+			
     }
+	
+	public function column_task_name($item) {
+        if ($item['website_type']=="super2") {
+            $txt = esc_html($item['task_name']);            
+            $txt .= '<br><span style="color:blue;">' . esc_html($item['title_prompt']) . '</span>';
+            return $txt;
+        } else {
+            return esc_html($item['task_name']);
+        }
+        
+        
+    }
+
 
     public function no_items() {
         esc_html__('No logs found.', 'botwriter');
@@ -238,6 +262,7 @@ class botwriter_Logs_Table extends WP_List_Table {
     public function get_sortable_columns() {
         return array(
             'created_at' => array('created_at', true),
+													 
             'task_status' => array('task_status', false),
             'aigenerated_title' => array('aigenerated_title', false),
         );
@@ -245,7 +270,6 @@ class botwriter_Logs_Table extends WP_List_Table {
 
     
 }
-
 
 
 function botwriter_get_logs_links($id_task) {
@@ -289,7 +313,6 @@ function botwriter_get_logs_titles($id_task) {
 }
  
  
-
 
 // Register a log in the botwriter_logs table (insert or update)
 function botwriter_logs_register($data, $id = null) {

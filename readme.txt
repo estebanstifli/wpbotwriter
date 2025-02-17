@@ -4,15 +4,16 @@ Donate link: https://wpbotwriter.com
 Tags: automation, AI, robot, content generation
 Requires at least: 4.0
 Tested up to: 6.7
-Stable tag: 1.3.0
+Stable tag: 1.3.1
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-BotWriter is a plugin that automatically generates articles using artificial intelligence like chatgpt.
+BotWriter allows you to automate the creation of blog posts on your website using AI, like Chat GPT. It uses the latest OpenAI models to generate articles.
 
 == Description ==
 
+WP BotWriter is a WordPress plugin that uses artificial intelligence (AI) to rewrite existing content or generate completely new content. It integrates with sources such as WordPress, RSS, and Google News to provide unique and SEO-optimized content.
 BotWriter allows you to automate the creation of blog posts on your website using AI. Customize parameters and let the bot write articles based on your settings.
 
 == Installation ==
@@ -23,15 +24,54 @@ BotWriter allows you to automate the creation of blog posts on your website usin
 
 == Frequently Asked Questions ==
 
-= What does BotWriter do? =
-BotWriter uses AI to automatically generate content on your website.
+= What is WP BotWriter? =
+WP BotWriter is a WordPress plugin that uses artificial intelligence (AI) to rewrite existing content or generate completely new content. It integrates with sources such as WordPress, RSS, and Google News to provide unique and SEO-optimized content.
 
-= Can I customize the articles that are generated? =
-Yes, you can configure certain parameters to guide the content creation process.
+= How does AI content rewriting work? =
+WP BotWriter can retrieve content from a WordPress site, RSS sources, or news feeds, then apply AI to rewrite it, creating fresh and unique posts. Additionally, WP BotWriter can generate attractive titles, relevant tags, and even thumbnails for each post.
+
+= Can I generate original content from scratch? =
+Yes, WP BotWriter allows you to create completely new content using AI, eliminating the need for manual writing. Each generated piece includes optimized titles, tags, and appealing thumbnails.
+
+= Is the generated content SEO-friendly? =
+Absolutely. WP BotWriter focuses on search engine optimization (SEO), ensuring that every title, tag, and piece of content is highly relevant.
+
+= How does WP BotWriter prevent spam or duplicate content? =
+WP BotWriter employs advanced AI technologies to detect and prevent the generation of irrelevant posts, spam, or content that is too similar to existing materials.
+
+= Can the generated content be modified? =
+Yes. WP BotWriter can be optionally configured to save posts as drafts, allowing you to review and edit them before publishing.
+
+= Is the article image created automatically? =
+Yes, WP BotWriter generates ultra-realistic, high-quality images based on the article’s content.
+
+= Can content generation be automated? =
+WP BotWriter can fully automate content creation on specified days of the week, with the ability to set the number of daily posts.
+
+= Do I need technical knowledge to use WP BotWriter? =
+No, WP BotWriter is designed to be intuitive and easy to use. You can choose to use predefined prompts or fully customize content generation to suit your needs.
+
+= Does WP BotWriter use third-party services? =
+Yes, WP BotWriter is linked to third-party API services to enhance the quality and efficiency of content generation and image editing. It connects to ChatGPT from OpenAI for text generation and Fal.ai for image creation.
+
+= How can I start using WP BotWriter? =
+You just need to install the plugin on your WordPress site, configure it according to your needs, and start generating content with the power of artificial intelligence.
+
+= Is WP BotWriter compatible with all WordPress sites? =
+WP BotWriter is compatible with most WordPress sites. It is recommended to check the plugin requirements before installation to ensure compatibility.
+
+= Can I use WP BotWriter with Google AdSense? =
+Yes, WP BotWriter generates high-quality, unique content that can be used with Google AdSense to monetize your website.
+
+= How long does it take to generate articles? =
+WP BotWriter typically takes between 30 seconds to 1 minute to generate an article, depending on the complexity and length of the content.
+
 
 == Screenshots ==
 
-1. Plugin settings page.
+1. Add New AI Task 1/3.
+2. Add New AI Task 2/3.
+3. Add New AI Task 3/3.
 
 == Changelog ==
 
@@ -44,8 +84,8 @@ Yes, you can configure certain parameters to guide the content creation process.
 = 1.3.0 =
 * Various bug fixes
 
-
-
+= 1.3.1 =
+* New options for article packs. Super Tasks.
 
 
 
