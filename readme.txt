@@ -1,10 +1,10 @@
 === BotWriter ===
 Contributors: estebandezafra
 Donate link: https://wpbotwriter.com
-Tags: automation, AI, robot, content generation
+Tags: gpt, openai, AI, content generation, auto, chatgpt
 Requires at least: 4.0
 Tested up to: 6.7
-Stable tag: 1.3.1
+Stable tag: 1.3.3
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -13,8 +13,12 @@ BotWriter allows you to automate the creation of blog posts on your website usin
 
 == Description ==
 
-WP BotWriter is a WordPress plugin that uses artificial intelligence (AI) to rewrite existing content or generate completely new content. It integrates with sources such as WordPress, RSS, and Google News to provide unique and SEO-optimized content.
-BotWriter allows you to automate the creation of blog posts on your website using AI. Customize parameters and let the bot write articles based on your settings.
+Bot Writer has been designed to simplify content creation for blogs, websites, and online stores, allowing users to generate optimized articles without the need to manually write every word. Additionally, it can produce high-quality images automatically, enhancing the generated content with a more visually appealing experience. Its functionality is based on the integration with artificial intelligence models that analyze the topic and produce coherent and well-structured texts.
+
+WP Bot Writer is a WordPress plugin that leverages artificial intelligence (AI) to rewrite existing content or generate completely new content. It integrates with sources such as WordPress, RSS, and Google News to provide unique and SEO-optimized content.
+
+With BotWriter, you can automate the creation of blog posts on your website using AI. Customize parameters to suit your needs, and let the bot generate high-quality articles based on your settings, ensuring fresh and relevant content for your audience.
+
 
 == Installation ==
 
@@ -72,6 +76,7 @@ WP BotWriter typically takes between 30 seconds to 1 minute to generate an artic
 1. Add New AI Task 1/3.
 2. Add New AI Task 2/3.
 3. Add New AI Task 3/3.
+4. Add Tasks
 
 == Changelog ==
 
@@ -87,8 +92,13 @@ WP BotWriter typically takes between 30 seconds to 1 minute to generate an artic
 = 1.3.1 =
 * New options for article packs. Super Tasks.
 
+= 1.3.2 =
 
+* bug fix
 
+= 1.3.3 =
+
+* Minor changes
 
 == External Services ==
 
