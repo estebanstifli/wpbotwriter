@@ -25,7 +25,9 @@ function botwriter_logs_page_handler() {
 
     // Display the page
     echo '<div class="wrap">';
-    echo '<h1>' . esc_html__('BotWriter Logs', 'botwriter') . '</h1>';
+    echo '<h1>' . esc_html__('BotWriter Logs', 'botwriter') . '</h1>';    
+    echo '<div id="countup"></div>';
+    
     echo '<form method="post">';
     wp_nonce_field('botwriter_logs_action', 'botwriter_logs_nonce');
     $logs_table->display();

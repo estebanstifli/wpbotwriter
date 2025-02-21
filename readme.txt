@@ -4,7 +4,7 @@ Donate link: https://wpbotwriter.com
 Tags: gpt, openai, AI, content generation, auto, chatgpt
 Requires at least: 4.0
 Tested up to: 6.7
-Stable tag: 1.3.3
+Stable tag: 1.3.4
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -99,6 +99,11 @@ WP BotWriter typically takes between 30 seconds to 1 minute to generate an artic
 = 1.3.3 =
 
 * Minor changes
+
+= 1.3.4 =
+
+* bug fix
+
 
 == External Services ==
 

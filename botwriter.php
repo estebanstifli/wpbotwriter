@@ -3,7 +3,7 @@
 Plugin Name: BotWriter
 Plugin URI:  https://www.wpbotwriter.com
 Description: Plugin for automatically generating posts using artificial intelligence. Create content from scratch with AI and generate custom images. Optimize content for SEO, including tags, titles, and image descriptions. Advanced features like ChatGPT, automatic content creation, image generation, SEO optimization, and AI training make this plugin a complete tool for writers and content creators.
-Version: 1.3.3
+Version: 1.3.4
 Author: estebandezafra
 Requires PHP: 7.0
 License:           GPL v2 or later
@@ -65,7 +65,7 @@ function botwriter_enqueue_scripts() {
     ]);
 
 
-    if (strpos($slug, 'botwriter') !== false) {
+    if (strpos((string)$slug, 'botwriter') !== false) {
         wp_enqueue_script('botwriter-dismiss-script', $my_plugin_dir .  '/assets/js/botwriter_dismiss.js', array('jquery'), null, true);    
         wp_localize_script('botwriter-dismiss-script','botwriterData',
             array(
@@ -80,7 +80,14 @@ function botwriter_enqueue_scripts() {
         wp_register_script('botwriter_automatic_posts', $my_plugin_dir . 'assets/js/posts.js', array('jquery'), false, true);
         wp_enqueue_script('botwriter_automatic_posts');
     }
-																												   
+    
+
+    if ($slug==="botwriter_page_botwriter_logs") {
+        wp_register_script('botwriter_logs', $my_plugin_dir . 'assets/js/logs.js', array('jquery'), false, true);
+        wp_enqueue_script('botwriter_logs');
+    }
+
+    																											   
 
     if ($slug === 'admin_page_botwriter_super_page') { 
         wp_register_script('botwriter_super', $my_plugin_dir . 'assets/js/super.js', array('jquery'), false, true);
@@ -90,6 +97,7 @@ function botwriter_enqueue_scripts() {
             'nonce'    => wp_create_nonce('botwriter_super_nonce')            
         ));
     }
+
     
 
 }
@@ -111,7 +119,7 @@ function botwriter_enqueue_styles(){
 
     // Only enqueue styles for a specific admin screen
 
-    if (strpos($slug, 'botwriter') !== false) {
+    if (strpos((string)$slug, 'botwriter') !== false) {
 
         // Register and enqueue styles with dynamic versioning for better caching
         wp_register_style('botwriter_bootstrap', $my_plugin_dir . 'assets/css/bootstrap.min.css', array(), filemtime(plugin_dir_path(__FILE__) . 'assets/css/bootstrap.min.css'));
@@ -268,9 +276,12 @@ register_activation_hook(__FILE__, 'botwriter_plugin_activate');
 function botwriter_plugin_activate() {    
     botwriter_activate_apikey_and_defaults();
     botwriter_create_table();
+    // Create the first supertask if it doesn't exist
+    /*
     if (!botwriter_super1_check_task_exist()) {
         botwriter_super1_create_first_task();
     }
+    */
 }
 
 
@@ -873,7 +884,7 @@ function botwriter_isValidDomain($domain) {
         // Check if the WordPress REST API is accessible
         $api_url = rtrim($site_url, '/') . '/wp-json/wp/v2/posts';
         $headers = @get_headers($api_url);
-        if ($headers && strpos($headers[0], '200') !== false) {
+        if ($headers && strpos((string)$headers[0], '200') !== false) {
             $response = true;
         }
     } elseif ($site_type === 'rss') {
@@ -934,6 +945,7 @@ register_deactivation_hook(__FILE__, 'botwriter_scheduled_events_plugin_deactiva
     global $wpdb;
     $table_name_tasks = $wpdb->prefix . 'botwriter_tasks';
     $table_name_logs = $wpdb->prefix . 'botwriter_logs';
+    $table_name_super = $wpdb->prefix . 'botwriter_super';
 
     // Get the current day and date
     $current_day = gmdate('l');
@@ -966,8 +978,17 @@ register_deactivation_hook(__FILE__, 'botwriter_scheduled_events_plugin_deactiva
             $task["execution_count"] = 0;
         }
 
+        // Check if the task is a supertask and if it exists
+        $super_exists = true;
+        if ($task["website_type"] == 'super2') { //supertask                                                                                    
+            $super = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name_super WHERE id_task = %d AND (task_status IS NULL OR task_status = '')", $task["id"]), ARRAY_A);
+            if (!$super) {
+                $super_exists = false;                            
+            }                                             
+        }
+
         // Check if the task can still be executed based on its daily limit
-        if ($task["execution_count"] < $task["times_per_day"]) {                            
+        if ($task["execution_count"] < $task["times_per_day"] && $super_exists) {                            
                 $last_execution_time = $task["last_execution_time"];
                 $now = current_time('timestamp');
                 $diff = $now - strtotime($last_execution_time);
@@ -975,10 +996,12 @@ register_deactivation_hook(__FILE__, 'botwriter_scheduled_events_plugin_deactiva
                 $pause = is_numeric($pause) ? intval($pause) : 2;
                 
                 if ($diff > 60 * $pause) { //                 
+                    
                     $event=$task;                                                       
                     $event["task_status"] = "pending";            
                     $event["id_task"] = $task["id"];              
                     $event["intentosfase1"] = 0;
+                    
                     $id_log=botwriter_logs_register($event);  // create log in db
                     $event["id"]=$id_log;
                     if ($task["website_type"] == 'super2') { //supertask                                                

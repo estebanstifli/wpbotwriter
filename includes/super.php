@@ -508,26 +508,30 @@ function botwriter_get_info_blog() {
   $blog_title       = get_bloginfo('name');
   $blog_description = get_bloginfo('description');
 
-  // Obtener todas las categorías
-  $categories = get_categories();
+  // Obtener solo las categorías de WordPress (excluyendo las de WooCommerce)
+  $categories = get_categories(array(
+      'hide_empty' => false, // Obtener también las categorías sin posts
+      'taxonomy'   => 'category' // Asegura que solo obtenemos categorías de posts, no de productos
+  ));
+
   $cats = array();
 
-  if ( ! empty( $categories ) ) {
-      foreach ( $categories as $cat ) {
+  if (!empty($categories)) {
+      foreach ($categories as $cat) {
           // Configurar argumentos para obtener los últimos 5 posts de la categoría actual
           $args = array(
-              'post_type'      => 'post',
+              'post_type'      => 'post', // Solo posts, no productos ni otros CPTs
               'post_status'    => 'publish',
               'cat'            => $cat->term_id, // Filtrar por el ID de la categoría
               'posts_per_page' => 5,
               'orderby'        => 'date',
               'order'          => 'DESC'
           );
-          $query = new WP_Query( $args );
+          $query = new WP_Query($args);
           $posts = array();
 
-          if ( $query->have_posts() ) {
-              while ( $query->have_posts() ) {
+          if ($query->have_posts()) {
+              while ($query->have_posts()) {
                   $query->the_post();
                   $posts[] = array(
                       'title'       => get_the_title(),
@@ -538,12 +542,12 @@ function botwriter_get_info_blog() {
               wp_reset_postdata(); // Importante para restaurar el loop principal
           }
 
-          // Agregar la información de la categoría y sus posts al array
+          // Agregar la categoría incluso si no tiene posts
           $cats[] = array(
               'id'          => $cat->term_id,
               'name'        => $cat->name,              
               'description' => $cat->description,
-              'posts'       => $posts
+              'posts'       => $posts // Se agrega vacío si no tiene posts
           );
       }
   }
