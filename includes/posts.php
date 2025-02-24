@@ -766,7 +766,7 @@ $default_language_code = substr($locale, 0, 2); // Obtiene el código del idioma
 <div class="col-md-6" id="div_rss">
   <label class="form-label">RSS Feed URL:</label>
   <input id="rss_source" name="rss_source" type="text" class="form-control" value="<?php echo esc_attr($item['rss_source']); ?>" >
-  <p class="form-text">Enter the URL of the RSS feed from which you want to get ideas.</p>
+  <p class="form-text">Enter the URL of the RSS feed. View <a href="https://github.com/plenaryapp/awesome-rss-feeds" target="_blank">awesome RSS feeds</a></p>
   <button type="button" class="btn btn-primary" onclick="fetchRSSFeed()">Check RSS Feed</button>
   <div id="rss_response"></div>
 </div>

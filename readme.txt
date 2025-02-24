@@ -4,7 +4,7 @@ Donate link: https://wpbotwriter.com
 Tags: gpt, openai, AI, content generation, auto, chatgpt
 Requires at least: 4.0
 Tested up to: 6.7
-Stable tag: 1.3.4
+Stable tag: 1.3.5
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -14,6 +14,13 @@ BotWriter allows you to automate the creation of blog posts on your website usin
 == Description ==
 
 Bot Writer has been designed to simplify content creation for blogs, websites, and online stores, allowing users to generate optimized articles without the need to manually write every word. Additionally, it can produce high-quality images automatically, enhancing the generated content with a more visually appealing experience. Its functionality is based on the integration with artificial intelligence models that analyze the topic and produce coherent and well-structured texts.
+
+Watch how WP Bot Writer works:
+[youtube https://www.youtube.com/watch?v=MpJ0KHKRYi8]
+
+How to Auto-Generate Articles from an RSS Feed | BotWriter + NASA RSS
+[youtube https://youtu.be/7aq0496XwY0]
+
 
 WP Bot Writer is a WordPress plugin that leverages artificial intelligence (AI) to rewrite existing content or generate completely new content. It integrates with sources such as WordPress, RSS, and Google News to provide unique and SEO-optimized content.
 
@@ -103,6 +110,11 @@ WP BotWriter typically takes between 30 seconds to 1 minute to generate an artic
 = 1.3.4 =
 
 * bug fix
+
+= 1.3.5 =
+
+* 2 video tutorials
+
 
 
 == External Services ==
