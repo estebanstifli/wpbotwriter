@@ -4,7 +4,7 @@ Donate link: https://wpbotwriter.com
 Tags: gpt, openai, AI, content generation, auto, chatgpt
 Requires at least: 4.0
 Tested up to: 6.7
-Stable tag: 1.3.5
+Stable tag: 1.3.6
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -13,9 +13,20 @@ BotWriter allows you to automate the creation of blog posts on your website usin
 
 == Description ==
 
-Bot Writer has been designed to simplify content creation for blogs, websites, and online stores, allowing users to generate optimized articles without the need to manually write every word. Additionally, it can produce high-quality images automatically, enhancing the generated content with a more visually appealing experience. Its functionality is based on the integration with artificial intelligence models that analyze the topic and produce coherent and well-structured texts.
+Do you want to keep your WordPress blog updated automatically with fresh, SEO-optimized content? 📈 With Botwriter, artificial intelligence takes care of writing and publishing articles for you! 
+You can go on vacation or stop worrying about your blog:
 
-Watch how WP Bot Writer works:
+🔹 Automatically publish content every day / every week
+🔹 Generate 100% original articles with HD images
+🔹 Optimize your blog to rank higher on Google
+🔹 Set it up in minutes and let AI do the rest
+
+In this video, we’ll show you how to set up Botwriter in just a few steps so your blog stays active effortlessly. Take advantage of AI-powered automation and streamline your content strategy! 🚀
+[youtube https://www.youtube.com/watch?v=PatljFLDNwI]
+
+BotWriter has been designed to simplify content creation for blogs, websites, and online stores, allowing users to generate optimized articles without the need to manually write every word. Additionally, it can produce high-quality images automatically, enhancing the generated content with a more visually appealing experience. Its functionality is based on the integration with artificial intelligence models that analyze the topic and produce coherent and well-structured texts.
+
+BotWriter is capable of creating entire blog content in minutes! Check out the example:
 [youtube https://www.youtube.com/watch?v=MpJ0KHKRYi8]
 
 How to Auto-Generate Articles from an RSS Feed | BotWriter + NASA RSS
@@ -36,7 +47,7 @@ With BotWriter, you can automate the creation of blog posts on your website usin
 == Frequently Asked Questions ==
 
 = What is WP BotWriter? =
-WP BotWriter is a WordPress plugin that uses artificial intelligence (AI) to rewrite existing content or generate completely new content. It integrates with sources such as WordPress, RSS, and Google News to provide unique and SEO-optimized content.
+Botwriter is an AI-powered automation tool that writes and publishes articles on WordPress automatically. It helps bloggers and website owners keep their content updated effortlessly, improving SEO rankings and boosting organic traffic.
 
 = How does AI content rewriting work? =
 WP BotWriter can retrieve content from a WordPress site, RSS sources, or news feeds, then apply AI to rewrite it, creating fresh and unique posts. Additionally, WP BotWriter can generate attractive titles, relevant tags, and even thumbnails for each post.
@@ -114,6 +125,10 @@ WP BotWriter typically takes between 30 seconds to 1 minute to generate an artic
 = 1.3.5 =
 
 * 2 video tutorials
+
+= 1.3.6 =
+
+* 1 new video tutorial
 
 
 

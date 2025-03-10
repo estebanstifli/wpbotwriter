@@ -688,7 +688,8 @@ function botwriter_post_form_meta_box_handler($item)
 <div id="div_news">    
 <div class="col-md-6" >
   <label class="form-label">Google News Keywords:</label>
-  <input id="news_keyword" name="news_keyword" type="text" class="form-control" value="<?php echo esc_attr($item['news_keyword']); ?>" >  
+  <input id="news_keyword" name="news_keyword" type="text" class="form-control" value="<?php echo esc_attr($item['news_keyword']); ?>" > 
+  <p class="form-text">Try on https://news.google.com to see the type of news that will appear</p> 
 </div>
 <br>
 
