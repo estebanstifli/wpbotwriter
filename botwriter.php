@@ -3,7 +3,7 @@
 Plugin Name: BotWriter
 Plugin URI:  https://www.wpbotwriter.com
 Description: Plugin for automatically generating posts using artificial intelligence. Create content from scratch with AI and generate custom images. Optimize content for SEO, including tags, titles, and image descriptions. Advanced features like ChatGPT, automatic content creation, image generation, SEO optimization, and AI training make this plugin a complete tool for writers and content creators.
-Version: 1.3.6
+Version: 1.3.7
 Author: estebandezafra
 Requires PHP: 7.0
 License:           GPL v2 or later
@@ -947,9 +947,9 @@ register_deactivation_hook(__FILE__, 'botwriter_scheduled_events_plugin_deactiva
     $table_name_logs = $wpdb->prefix . 'botwriter_logs';
     $table_name_super = $wpdb->prefix . 'botwriter_super';
 
-    // Get the current day and date
-    $current_day = gmdate('l');
-    $current_date = gmdate('Y-m-d');
+    // Get the current day and date based on WordPress local time
+    $current_day = date_i18n('l'); 
+    $current_date = current_time('Y-m-d'); 
 
     // Translate the day for matching with stored values
     $days_translations = [
@@ -963,10 +963,9 @@ register_deactivation_hook(__FILE__, 'botwriter_scheduled_events_plugin_deactiva
     ];
     $current_day_translated = $days_translations[$current_day];
 
-    //PPHASE 2
+    // PHASE 2
     botwriter_execute_events_pass2();
      
-    
     //PHASE 1 Execute each event if it meets the conditions
     // Get tasks scheduled for today and status=1  
     $tasks = (array) $wpdb->get_results($wpdb->prepare("SELECT * FROM {$table_name_tasks} WHERE days LIKE %s AND status = %d", '%' . $wpdb->esc_like($current_day_translated) . '%', 1));
@@ -989,41 +988,31 @@ register_deactivation_hook(__FILE__, 'botwriter_scheduled_events_plugin_deactiva
 
         // Check if the task can still be executed based on its daily limit
         if ($task["execution_count"] < $task["times_per_day"] && $super_exists) {                            
-                $last_execution_time = $task["last_execution_time"];
-                $now = current_time('timestamp');
-                $diff = $now - strtotime($last_execution_time);
-                $pause = get_option('botwriter_paused_tasks');
-                $pause = is_numeric($pause) ? intval($pause) : 2;
-                
-                if ($diff > 60 * $pause) { //                 
-                    
-                    $event=$task;                                                       
-                    $event["task_status"] = "pending";            
-                    $event["id_task"] = $task["id"];              
-                    $event["intentosfase1"] = 0;
-                    
-                    $id_log=botwriter_logs_register($event);  // create log in db
-                    $event["id"]=$id_log;
-                    if ($task["website_type"] == 'super2') { //supertask                                                
-                        $event = botwriter_super_prepare_event($event);
-                        $id_log=botwriter_logs_register($event,$id_log);  //  actualizamos log con los datos de super2
-                    }
-                    
-                    
-                    
-                    
-                    
-
-                    botwriter_send1_data_to_server( (array) $event);                                      
-                    // Update execution count in the database and last_execution_time
-                    $current_time = gmdate('Y-m-d H:i:s', current_time('timestamp'));
-                    $wpdb->update($table_name_tasks, ['execution_count' => $task["execution_count"] + 1,'last_execution_time'=>$current_time], ['id' => $task["id"]]);            
-                }            
+            $last_execution_time = $task["last_execution_time"];
+            $now = current_time('timestamp'); 
+            $diff = $now - strtotime($last_execution_time);
+            $pause = get_option('botwriter_paused_tasks');
+            $pause = is_numeric($pause) ? intval($pause) : 2;
+			
+            if ($diff > 60 * $pause) { //                 
+			
+                $event = $task;                                                       
+                $event["task_status"] = "pending";            
+                $event["id_task"] = $task["id"];              
+                $event["intentosfase1"] = 0;
+                $id_log = botwriter_logs_register($event);  // create log in db
+                $event["id"] = $id_log;
+                if ($task["website_type"] == 'super2') { // supertask                                                
+                    $event = botwriter_super_prepare_event($event);
+                    $id_log = botwriter_logs_register($event, $id_log);  // actualizamos log con los datos de super2
+                }
+                botwriter_send1_data_to_server((array) $event);                                      
+                // Update execution count in the database and last_execution_time
+                $current_time = current_time('Y-m-d H:i:s'); // Usar hora local de WordPress
+                $wpdb->update($table_name_tasks, ['execution_count' => $task["execution_count"] + 1, 'last_execution_time' => $current_time], ['id' => $task["id"]]);            
+            }            
         }
     }  // end tasks
-
-   
-
 }
 
 function botwriter_execute_events_pass2(){  
