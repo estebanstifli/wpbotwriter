@@ -311,7 +311,7 @@ function botwriter_super_page_handler(){
               
               <div class="col-md-6">
                 <label for="super1number">Number of Articles (1-50max):</label>
-                <input type="number" id="super1_numarticles" name="super1_numarticles" value="25" min="1" max="50"><br>            
+                <input type="number" id="super1_numarticles" name="super1_numarticles" value="10" min="1" max="50"><br>            
                 
               </div>
                 <br>
@@ -552,16 +552,52 @@ function botwriter_get_info_blog() {
       }
   }
 
+  // Obtener páginas publicadas
+  $pages_args = array(
+      'post_type'      => 'page',
+      'post_status'    => 'publish',
+      'posts_per_page' => 10,
+      'orderby'        => 'date',
+      'order'          => 'DESC'
+  );
+  $pages_query = new WP_Query($pages_args);
+  $pages = array();
+
+  if ($pages_query->have_posts()) {
+      while ($pages_query->have_posts()) {
+          $pages_query->the_post();
+          // Obtener el excerpt, y si no existe, tomar los primeros 200 caracteres del contenido
+          $excerpt = get_the_excerpt();
+          if (empty($excerpt)) {
+              $content = wp_strip_all_tags(get_the_content()); // Quitar etiquetas HTML del contenido
+              $excerpt = substr($content, 0, 250); // Tomar los primeros 200 caracteres
+              if (strlen($content) > 250) {
+                  $excerpt .= '...'; // Agregar puntos suspensivos si el contenido es más largo
+              }
+          }
+
+          $pages[] = array(
+              'id'          => get_the_ID(),
+              'title'       => get_the_title(),
+              'description' => $excerpt, // Usar el excerpt o los primeros 200 caracteres
+              //'date'        => get_the_date(),    // Fecha de creación
+              //'modified'    => get_the_modified_date(), // Fecha de última modificación
+              //'slug'        => get_post_field('post_name') // Slug de la página
+          );
+      }
+      wp_reset_postdata(); // Restaurar el loop principal
+  }
+
   // Armar el array con la información completa del blog
   $info_blog = array(
       'title'       => $blog_title,
       'description' => $blog_description,
       'categories'  => $cats,
+      'pages'       => $pages // Nueva sección para las páginas
   );
 
   return $info_blog;
 }
-
 
 function botwriter_super1_create_first_task() {
   $info_blog = botwriter_get_info_blog();
@@ -571,7 +607,7 @@ function botwriter_super1_create_first_task() {
 }
 
 // create a log not task, only 1 for titles
-function botwriter_super1_create_task($task_name, $title_prompt, $content_prompt,$post_count=25,$category_id=0) {
+function botwriter_super1_create_task($task_name, $title_prompt, $content_prompt,$post_count=10,$category_id=0) {
   global $wpdb;
   $table_name = $wpdb->prefix . 'botwriter_logs';
   $current_time = gmdate('Y-m-d H:i:s', current_time('timestamp'));
