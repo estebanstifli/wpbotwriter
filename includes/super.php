@@ -332,6 +332,7 @@ function botwriter_super_page_handler(){
     <?php 
     // si es editing que sea vea el html
     if ($is_editing) {
+      
       echo botwriter_super1_view_articles_html($id);
     }
     ?>  
@@ -732,17 +733,20 @@ foreach ($data_array as $post) {
 }
 
 
-
+ 
 
 }
 
 function botwriter_super1_view_articles_html($id_task=0) {
+
+
+
   global $wpdb;
   $table_name = $wpdb->prefix . 'botwriter_super';
   $posts = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table_name WHERE id_task = %d ORDER BY category_id", $id_task), ARRAY_A);
   //
 
-  $html = '';
+  $html = '<a href="javascript:void(0);" onclick="botwriter_reset_super1();" class="button-primary">Reset Task and Try Again</a>';
   $contador = 0;
   $auxcategoria = "";
 

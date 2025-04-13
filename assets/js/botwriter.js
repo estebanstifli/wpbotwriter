@@ -306,12 +306,18 @@ function refreshWebsiteCategories() {
 
   
  
-function botwriter_reset_super1() {       
+function botwriter_reset_super1() {     
+  // Mostrar el elemento de carga
+  jQuery("#loading").show();
+  
+
   jQuery.post(botwriter_ajax.ajax_url, {
       action: 'botwriter_eliminar_super1',
       _ajax_nonce: botwriter_ajax.nonce
   })
   .done(function(response) {
+      // refrescar la pagina
+      location.reload();      
       console.log("ok");
   })
   .fail(function(xhr, status, error) {
