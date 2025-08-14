@@ -324,3 +324,5 @@ function botwriter_reset_super1() {
       console.error('AJAX request error:', status, error);
   });
 };
+
+

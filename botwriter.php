@@ -3,7 +3,7 @@
 Plugin Name: BotWriter
 Plugin URI:  https://www.wpbotwriter.com
 Description: Plugin for automatically generating posts using artificial intelligence. Create content from scratch with AI and generate custom images. Optimize content for SEO, including tags, titles, and image descriptions. Advanced features like ChatGPT, automatic content creation, image generation, SEO optimization, and AI training make this plugin a complete tool for writers and content creators.
-Version: 1.3.9
+Version: 1.4.0
 Author: estebandezafra
 Requires PHP: 7.0
 License:           GPL v2 or later
@@ -24,6 +24,7 @@ define('BOTWRITER_API_URL', "https://wpbotwriter.com/public/");
 
 
 
+
 require plugin_dir_path( __FILE__ ) . 'includes/posts.php';
 require plugin_dir_path( __FILE__ ) . 'includes/functions.php';
 require plugin_dir_path( __FILE__ ) . 'includes/settings.php';
@@ -40,7 +41,7 @@ function botwriter_enqueue_scripts() {
     $my_plugin_dir = plugin_dir_url(__FILE__);        
 	$screen = get_current_screen();
     $slug = $screen->id;							   
-	
+
     	
 	
     wp_register_script( 'bootstrapjs',$my_plugin_dir.'/assets/js/bootstrap.min.js' , array('jquery'), false, true );
@@ -96,6 +97,11 @@ function botwriter_enqueue_scripts() {
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce'    => wp_create_nonce('botwriter_super_nonce')            
         ));
+    }
+
+    if ($slug === 'botwriter_page_botwriter_settings') {
+        wp_register_script('botwriter_settings', $my_plugin_dir . 'assets/js/botwriter-settings.js', array('jquery'), false, true);
+        wp_enqueue_script('botwriter_settings');
     }
 
     
@@ -177,7 +183,8 @@ add_action('admin_menu', function() {
         'botwriter_automatic_posts_page'
     );
 
-    /* // for development
+     // for development
+     /*
     add_submenu_page('botwriter_menu', 
         __('Test Call', 'botwriter'),
         __('Test Call', 'botwriter'),
@@ -186,6 +193,7 @@ add_action('admin_menu', function() {
         'botwriter_prueba'
     );
     */
+    
 
     add_submenu_page(null,                                 
         __('Add New Task', 'botwriter'),
@@ -245,25 +253,25 @@ function botwriter_admin_page() {
     ?>    
     <div class="wrap">
         <h1><?php echo esc_html__('BotWriter - AI-Powered Content Creation', 'botwriter'); ?></h1>        
-        <p><?php echo esc_html__('BotWriter is a WordPress plugin that uses artificial intelligence (AI) to rewrite existing content or generate completely new content. It integrates with sources such as WordPress, RSS, and Google News to provide unique and SEO-optimized content.', 'botwriter'); ?></p>
+        <p><?php echo esc_html__('BotWriter is a WordPress plugin that uses artificial intelligence (AI) to rewrite existing content or generate completely new content. It integrates with sources such as WordPress and RSS to provide unique and SEO-optimized content.', 'botwriter'); ?></p>
         <h2><?php echo esc_html__('Key Features:', 'botwriter'); ?></h2>
         <ul>
             <li><?php echo esc_html__('✔ AI-generated content and rewrites', 'botwriter'); ?></li>
             <li><?php echo esc_html__('✔ SEO-optimized posts with titles, tags, and metadata', 'botwriter'); ?></li>
-            <li><?php echo esc_html__('✔ Fetch content from WordPress, RSS, and Google News', 'botwriter'); ?></li>
+            <li><?php echo esc_html__('✔ Fetch content from WordPress and RSS', 'botwriter'); ?></li>
             <li><?php echo esc_html__('✔ Automated publishing with customizable schedules', 'botwriter'); ?></li>
             <li><?php echo esc_html__('✔ AI-powered image generation for posts', 'botwriter'); ?></li>
             <li><?php echo esc_html__('✔ Prevents duplicate content and spam', 'botwriter'); ?></li>
             <li><?php echo esc_html__('✔ Easy-to-use interface with no technical knowledge required', 'botwriter'); ?></li>
         </ul>
         <h2><?php echo esc_html__('How to Get Started?', 'botwriter'); ?></h2>
-        <p><?php echo esc_html__('1. Create tasks in Add New.', 'botwriter'); ?></p>        
-        <p><?php echo esc_html__('2. The plugin will automatically generate the posts!', 'botwriter'); ?></p>
-        <p><?php echo esc_html__('3. (Optional) Configure the settings if needed.', 'botwriter'); ?></p>
+
+        <p><?php echo esc_html__('1. Add your OpenAI API key in the settings.', 'botwriter'); ?></p>
+        <p><?php echo esc_html__('2. Create tasks in Add New.', 'botwriter'); ?></p>        
+        <p><?php echo esc_html__('3. The plugin will automatically generate the posts!', 'botwriter'); ?></p>        
         <p><?php echo esc_html__('4. (Optional) Check the logs to see the status of the tasks.', 'botwriter'); ?></p>
 
-        <h2><?php echo esc_html__('Free Plan or Premium Plan', 'botwriter'); ?></h2>
-        <p><?php echo esc_html__('BotWriter offers a free plan with limited features. To access all the features, you can upgrade to a premium plan.', 'botwriter'); ?> <a href="https://www.wpbotwriter.com" target="_blank"><?php echo esc_html__('Click here to see the plans.', 'botwriter'); ?></a></p>        
+        
     </div>
     
     <?php
@@ -1080,8 +1088,7 @@ function botwriter_generate_post($data){
  
 // Function to send data to the server pass1
 function botwriter_send1_data_to_server($data) {
-    
-    
+        
     Global $botwriter_version;
     $remote_url = BOTWRITER_API_URL . 'redis_api_cola.php';
      
@@ -1095,7 +1102,8 @@ function botwriter_send1_data_to_server($data) {
 
     // settings
     $data['version'] = $botwriter_version;
-    $data['api_key'] = get_option('botwriter_api_key');
+    $data['api_key'] = get_option('botwriter_api_key');    // la api_key del programa
+    $data['openai_api_key'] =  botwriter_decrypt_api_key(get_option('botwriter_openai_api_key'));
     $data["user_domainname"] = esc_url(get_site_url());
     $data["ai_image_size"]=get_option('botwriter_ai_image_size');
 
@@ -1176,6 +1184,9 @@ function botwriter_send1_data_to_server($data) {
         
             $body = wp_remote_retrieve_body($response);
             $result = json_decode($body, true);        
+
+            //error_log("Data received: " . print_r($body, true));
+
             if (isset($result['id_task_server']) && $result['id_task_server'] !== 0) { // ok                
                 $data["id_task_server"]=$result['id_task_server'];
                 $data["task_status"]='inqueue';                   
@@ -1200,7 +1211,7 @@ function botwriter_send1_data_to_server($data) {
 
 // Function to send data to the server pass2
 function botwriter_send2_data_to_server($data) {  
-    Global $wpdb;
+    Global $wpdb;    
     
     $data['api_key'] = get_option('botwriter_api_key');
     $data["user_domainname"] = esc_url(get_site_url());
@@ -1259,13 +1270,15 @@ function botwriter_send2_data_to_server($data) {
             }  
             
             // result completed
+            error_log("comprobando task_status: " . print_r($result, true));
             if (isset($result["task_status"]) && $result["task_status"] == "completed") {
                 botwriter_logs_register($result, $data["id"]);                          
                 
                 $result=botwriter_logs_get($data["id"]);  // merge the result with the log
 
-                if ($result["website_type"] == "super1") {
+                if ($result["website_type"] == "super1") {                                                            
                     botwriter_super1_log_to_bd($result,$data["id"]);                    
+
                 } else {
                     $post_id=botwriter_generate_post($result);
                     $result["id_post_published"]=$post_id;

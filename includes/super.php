@@ -799,7 +799,7 @@ function botwriter_super1_check_task_exist() {
     "SELECT * FROM $table_name WHERE website_type = %d",
     'super1'
   ));
-  if ($task) {
+  if ($task) { 
       return true;  
   } else {
     return false;
@@ -807,19 +807,21 @@ function botwriter_super1_check_task_exist() {
 }
 
 
-// crea una funcion que mire en la tabla task si la tarea super esta completeda
+// crea una funcion que mire en la tabla task si la tarea super esta completeda (la ultima que se ha creado)
 function botwriter_super1_check_task_finish() {
   global $wpdb; 
   $table_name = $wpdb->prefix . 'botwriter_logs';
-  $task = $wpdb->get_row("SELECT * FROM $table_name WHERE website_type = 'super1'");
+  $task = $wpdb->get_row("SELECT * FROM $table_name WHERE website_type = 'super1' order by id desc limit 1");
 
   if ($task) {
     if ($task->task_status == 'completed') {
       return 'completed';
     }
+    
     if ($task->task_status == 'error') {
       return 'error';      
     }
+    
     if ($task->task_status == 'pending' || $task->task_status == 'inqueue') {      
       botwriter_execute_events_pass2();
       return 'inqueue';

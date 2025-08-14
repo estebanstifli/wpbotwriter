@@ -1,10 +1,10 @@
 === BotWriter ===
 Contributors: estebandezafra
 Donate link: https://wpbotwriter.com
-Tags: gpt, openai, AI, content generation, auto, chatgpt
+Tags: gpt, openai, AI, auto, chatgpt
 Requires at least: 4.0
-Tested up to: 6.7
-Stable tag: 1.3.9
+Tested up to: 6.8
+Stable tag: 1.4.0
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -33,7 +33,7 @@ How to Auto-Generate Articles from an RSS Feed | BotWriter + NASA RSS
 [youtube https://youtu.be/7aq0496XwY0]
 
 
-WP Bot Writer is a WordPress plugin that leverages artificial intelligence (AI) to rewrite existing content or generate completely new content. It integrates with sources such as WordPress, RSS, and Google News to provide unique and SEO-optimized content.
+WP Bot Writer is a WordPress plugin that leverages artificial intelligence (AI) to rewrite existing content or generate completely new content. It integrates with sources such as WordPress and RSS to provide unique and SEO-optimized content.
 
 With BotWriter, you can automate the creation of blog posts on your website using AI. Customize parameters to suit your needs, and let the bot generate high-quality articles based on your settings, ensuring fresh and relevant content for your audience.
 
@@ -48,6 +48,10 @@ With BotWriter, you can automate the creation of blog posts on your website usin
 
 = What is WP BotWriter? =
 Botwriter is an AI-powered automation tool that writes and publishes articles on WordPress automatically. It helps bloggers and website owners keep their content updated effortlessly, improving SEO rankings and boosting organic traffic.
+
+= Is BotWriter free? =
+Yes, you only need your OpenAI key to generate articles and images. Each article generation request will use your OpenAI API account; BotWriter does not retain any part of it.
+
 
 = How does AI content rewriting work? =
 WP BotWriter can retrieve content from a WordPress site, RSS sources, or news feeds, then apply AI to rewrite it, creating fresh and unique posts. Additionally, WP BotWriter can generate attractive titles, relevant tags, and even thumbnails for each post.
@@ -141,6 +145,10 @@ WP BotWriter typically takes between 30 seconds to 1 minute to generate an artic
 = 1.3.9 =
 
 * Super task reset for multiple retries
+
+= 1.4.0 =
+
+* Change to total free plan. With the own Api key of openAI
 
 
 == External Services ==

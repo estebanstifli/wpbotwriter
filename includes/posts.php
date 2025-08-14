@@ -587,15 +587,15 @@ function botwriter_post_form_meta_box_handler($item)
     </label>
     
     <!-- Google News -->
-    <label class="source-option">
+    <label class="source-option"  style="display:none;">
       <input type="radio" name="website_type" value="news" <?php if ($item['website_type'] === 'news') {
-                                                                      echo 'checked';
-                                                                    } ?>>
+                                      echo 'checked';
+                                    } ?>>
       <img src="<?php echo esc_url($dir_images_icons . 'news100.png'); ?>" alt="Google News" class="source-icon">
-        <div class="writer-info">
-        <strong><?php echo esc_html__('Google News', 'botwriter'); ?></strong>
-        <p><?php echo esc_html__('Extracts trending news from Google News to rewrite and adapt to your blog’s audience. You can select the topic or keyword.', 'botwriter'); ?></p>
-        </div>
+      <div class="writer-info">
+      <strong><?php echo esc_html__('Google News', 'botwriter'); ?></strong>
+      <p><?php echo esc_html__('Extracts trending news from Google News to rewrite and adapt to your blog’s audience. You can select the topic or keyword.', 'botwriter'); ?></p>
+      </div>
     </label>
     
     <!-- RSS (Web with RSS) -->

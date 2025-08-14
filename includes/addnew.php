@@ -35,10 +35,9 @@ function botwriter_addnew_page_handler(){
           <h2 class="super-title">Tasks AI</h2>
           <br>
           <ul>
-              <li>Articles from Google News</li>
+              <li>Articles from keywords</li>              
               <li>Articles from Rss Feed</li>
-              <li>Articles from External Wordpress</li>
-              <li>Articles from keywords</li>
+              <li>Articles from External Wordpress</li>              
                 <li><a class="add-new-h2" href="<?php echo $add_new_url_automatic_post_new; ?>"><?php esc_html_e('Add new', 'botwriter'); ?></a></li>                     
             </ul>                    
       </div>      
