@@ -15,13 +15,15 @@ function botwriter_settings_page_handler() {
     if (isset($_POST['nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'])), basename(__FILE__))) {
         // Actualiza las opciones en la base de datos
         $settings = array(
-            'botwriter_ai_image_size' => isset($_POST['botwriter_ai_image_size']) ? sanitize_text_field(wp_unslash($_POST['botwriter_ai_image_size'])) : 'square_hd',
+            'botwriter_ai_image_size' => isset($_POST['botwriter_ai_image_size']) ? sanitize_text_field(wp_unslash($_POST['botwriter_ai_image_size'])) : 'square',
+            'botwriter_ai_image_quality' => isset($_POST['botwriter_ai_image_quality']) ? sanitize_text_field(wp_unslash($_POST['botwriter_ai_image_quality'])) : 'medium',
             'botwriter_sslverify' => isset($_POST['botwriter_sslverify']) ? sanitize_text_field(wp_unslash($_POST['botwriter_sslverify'])) : 'yes',
             'botwriter_email' => isset($_POST['botwriter_email']) ? sanitize_email(wp_unslash($_POST['botwriter_email'])) : get_option('admin_email'),
             'botwriter_api_key' => isset($_POST['botwriter_api_key']) ? sanitize_text_field(wp_unslash($_POST['botwriter_api_key'])) : '',
             'botwriter_cron_active' => isset($_POST['botwriter_cron_active']) ? sanitize_text_field(wp_unslash($_POST['botwriter_cron_active'])) : '1',
             'botwriter_paused_tasks' => isset($_POST['botwriter_paused_tasks']) ? sanitize_text_field(wp_unslash($_POST['botwriter_paused_tasks'])) : '2',
             'botwriter_openai_api_key' => isset($_POST['botwriter_openai_api_key']) ? sanitize_text_field(wp_unslash($_POST['botwriter_openai_api_key'])) : '',
+            'botwriter_openai_model' => isset($_POST['botwriter_openai_model']) ? sanitize_text_field(wp_unslash($_POST['botwriter_openai_model'])) : 'gpt-4o-mini',
         );
 
         $settings["botwriter_plan_id"] = 0; // free plan
@@ -108,12 +110,15 @@ function botwriter_settings_page_handler() {
     <?php
 }
 
-function botwriter_settings_meta_box_handler() {
+function botwriter_settings_meta_box_handler() { 
+    // default values
     $settings = array(
-        'botwriter_ai_image_size' => get_option('botwriter_ai_image_size', 'square_hd'),
+        'botwriter_ai_image_size' => get_option('botwriter_ai_image_size', 'square'),
+        'botwriter_ai_image_quality' => get_option('botwriter_ai_image_quality', 'medium'),
         'botwriter_sslverify' => get_option('botwriter_sslverify', 'yes'),
         'botwriter_cron_active' => get_option('botwriter_cron_active', '1'),
         'botwriter_paused_tasks' => get_option('botwriter_paused_tasks', '2'),
+        'botwriter_openai_model' => get_option('botwriter_openai_model', 'gpt-4o-mini'),
     );
 
     ?>
@@ -126,17 +131,65 @@ function botwriter_settings_meta_box_handler() {
         </div>
         <p class="description"><?php esc_html_e('Enter your OpenAI API Key. Click the button to show or hide the key.', 'botwriter'); ?></p>
     </div>
-    <br>
+    <br>    
+
+    <div class="col-md-6">
+  <label class="form-label"><?php esc_html_e('OpenAI Model:', 'botwriter'); ?></label>
+  <?php
+  // Current value (fallback to gpt-4o-mini)
+  $current = !empty($settings['botwriter_openai_model'])
+    ? $settings['botwriter_openai_model']
+    : 'gpt-4o-mini';
+
+  // Groups and available models
+  $model_groups = [
+    'GPT-5 (text/multimodal)' => [
+      'gpt-5'       => 'GPT-5 (highest quality)',
+      'gpt-5-mini'  => 'GPT-5 mini (fast/economical)',
+      'gpt-5-nano'  => 'GPT-5 nano (minimum latency)',
+    ],
+    'GPT-4.1' => [
+      'gpt-4.1'       => 'GPT-4.1',
+      'gpt-4.1-mini'  => 'GPT-4.1 mini',
+      'gpt-4.1-nano'  => 'GPT-4.1 nano',
+    ],
+    'GPT-4o (omni)' => [
+      'gpt-4o'      => 'GPT-4o',
+      'gpt-4o-mini' => 'GPT-4o mini',
+    ],
+    
+  ];
+  ?>
+  <select name="botwriter_openai_model" class="form-select">
+    <?php foreach ($model_groups as $group_label => $models): ?>
+      <optgroup label="<?php echo esc_attr($group_label); ?>">
+        <?php foreach ($models as $id => $label): ?>
+          <option value="<?php echo esc_attr($id); ?>" <?php selected($current, $id); ?>>
+            <?php echo esc_html($label); ?>
+          </option>
+        <?php endforeach; ?>
+      </optgroup>
+    <?php endforeach; ?>
+  </select>  
+</div>
+<br>
 
     <div class="col-md-6">
         <label class="form-label"><?php esc_html_e('AI Generated Images Size:', 'botwriter'); ?></label>
-        <select name="botwriter_ai_image_size" class="form-control">
-            <option value="square_hd" <?php selected($settings['botwriter_ai_image_size'], 'square_hd'); ?>><?php esc_html_e('Square HD', 'botwriter'); ?></option>
-            <option value="square" <?php selected($settings['botwriter_ai_image_size'], 'square'); ?>><?php esc_html_e('Square', 'botwriter'); ?></option>
-            <option value="portrait_4_3" <?php selected($settings['botwriter_ai_image_size'], 'portrait_4_3'); ?>><?php esc_html_e('Portrait 4:3', 'botwriter'); ?></option>
-            <option value="portrait_16_9" <?php selected($settings['botwriter_ai_image_size'], 'portrait_16_9'); ?>><?php esc_html_e('Portrait 16:9', 'botwriter'); ?></option>
-            <option value="landscape_4_3" <?php selected($settings['botwriter_ai_image_size'], 'landscape_4_3'); ?>><?php esc_html_e('Landscape 4:3', 'botwriter'); ?></option>
-            <option value="landscape_16_9" <?php selected($settings['botwriter_ai_image_size'], 'landscape_16_9'); ?>><?php esc_html_e('Landscape 16:9', 'botwriter'); ?></option>
+        <select name="botwriter_ai_image_size" class="form-control">            
+            <option value="landscape" <?php selected($settings['botwriter_ai_image_size'], 'landscape'); ?>><?php esc_html_e('Landscape (1536x1024)', 'botwriter'); ?></option>
+            <option value="square" <?php selected($settings['botwriter_ai_image_size'], 'square'); ?>><?php esc_html_e('Square (1024x1024)', 'botwriter'); ?></option>            
+            <option value="portrait" <?php selected($settings['botwriter_ai_image_size'], 'portrait'); ?>><?php esc_html_e('Portrait (1024x1536)', 'botwriter'); ?></option>
+        </select>
+    </div>
+    <br>
+    
+    <div class="col-md-6">
+        <label class="form-label"><?php esc_html_e('AI Generated Images Quality:', 'botwriter'); ?></label>
+        <select name="botwriter_ai_image_quality" class="form-control">
+            <option value="low" <?php selected($settings['botwriter_ai_image_quality'], 'low'); ?>><?php esc_html_e('Low', 'botwriter'); ?></option>
+            <option value="medium" <?php selected($settings['botwriter_ai_image_quality'], 'medium'); ?>><?php esc_html_e('Medium', 'botwriter'); ?></option>
+            <option value="high" <?php selected($settings['botwriter_ai_image_quality'], 'high'); ?>><?php esc_html_e('High', 'botwriter'); ?></option>
         </select>
     </div>
     <br>
@@ -163,7 +216,7 @@ function botwriter_settings_meta_box_handler() {
     </div>
     <br>
 
-    <div class="col-md-6">
+    <div class="col-md-6" style="display:none;">
         <label class="form-label"><?php esc_html_e('Email:', 'botwriter'); ?></label>
         <input id="botwriter_email" type="text" name="botwriter_email" class="form-control"
                value="<?php echo esc_attr(get_option('botwriter_email')); ?>" style="width: 50%;">

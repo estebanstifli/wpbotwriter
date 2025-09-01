@@ -4,7 +4,7 @@ Donate link: https://wpbotwriter.com
 Tags: gpt, openai, AI, auto, chatgpt
 Requires at least: 4.0
 Tested up to: 6.8
-Stable tag: 1.4.0
+Stable tag: 1.4.1
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -51,7 +51,6 @@ Botwriter is an AI-powered automation tool that writes and publishes articles on
 
 = Is BotWriter free? =
 Yes, you only need your OpenAI key to generate articles and images. Each article generation request will use your OpenAI API account; BotWriter does not retain any part of it.
-
 
 = How does AI content rewriting work? =
 WP BotWriter can retrieve content from a WordPress site, RSS sources, or news feeds, then apply AI to rewrite it, creating fresh and unique posts. Additionally, WP BotWriter can generate attractive titles, relevant tags, and even thumbnails for each post.
@@ -149,6 +148,29 @@ WP BotWriter typically takes between 30 seconds to 1 minute to generate an artic
 = 1.4.0 =
 
 * Change to total free plan. With the own Api key of openAI
+
+= 1.4.1 =
+
+* You can choose the OpenAI model and the quality of the generated images:
+
+GPT-5 (text/multimodal)
+  gpt-5  GPT-5 (highest quality)
+  gpt-5-mini GPT-5 mini (fast/economical)
+  gpt-5-nano GPT-5 nano (minimum latency)
+
+GPT-4.1
+  gpt-4.1  GPT-4.1
+  gpt-4.1-mini GPT-4.1 mini
+  gpt-4.1-nano GPT-4.1 nano
+
+GPT-4o (omni)
+  gpt-4o  GPT-4o
+  gpt-4o-mini GPT-4o mini
+
+
+
+
+
 
 
 == External Services ==

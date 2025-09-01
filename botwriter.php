@@ -3,7 +3,7 @@
 Plugin Name: BotWriter
 Plugin URI:  https://www.wpbotwriter.com
 Description: Plugin for automatically generating posts using artificial intelligence. Create content from scratch with AI and generate custom images. Optimize content for SEO, including tags, titles, and image descriptions. Advanced features like ChatGPT, automatic content creation, image generation, SEO optimization, and AI training make this plugin a complete tool for writers and content creators.
-Version: 1.4.0
+Version: 1.4.1
 Author: estebandezafra
 Requires PHP: 7.0
 License:           GPL v2 or later
@@ -20,6 +20,8 @@ if (!defined('ABSPATH')) {
 define('BOTWRITER_URL', plugin_dir_url(__FILE__));
 
 define('BOTWRITER_API_URL', "https://wpbotwriter.com/public/");
+
+
 
 
 
@@ -322,15 +324,20 @@ function botwriter_activate_apikey_and_defaults() {
     }
     
     if (get_option('botwriter_ai_image_size') === false) {
-        update_option('botwriter_ai_image_size', 'square_hd');
+        update_option('botwriter_ai_image_size', 'square');
     }
     
     if (get_option('botwriter_sslverify') === false) {
         update_option('botwriter_sslverify', 'yes');
     }
 
+    if (get_option('botwriter_openai_model') === false) {
+        update_option('botwriter_openai_model', 'gpt-4o-mini');
+    }
+    if (get_option('botwriter_ai_image_quality') === false) {
+        update_option('botwriter_ai_image_quality', 'medium');
+    }
 
-        
     $data = array(
         'user_domainname' => $site_url,
         'email_blog' => $admin_email,
@@ -1104,12 +1111,12 @@ function botwriter_send1_data_to_server($data) {
     $data['version'] = $botwriter_version;
     $data['api_key'] = get_option('botwriter_api_key');    // la api_key del programa
     $data['openai_api_key'] =  botwriter_decrypt_api_key(get_option('botwriter_openai_api_key'));
-    $data["user_domainname"] = esc_url(get_site_url());
+    $data["user_domainname"] = esc_url(get_site_url()); 
     $data["ai_image_size"]=get_option('botwriter_ai_image_size');
+    $data["ai_image_quality"]=get_option('botwriter_ai_image_quality');
+    $data["openai_model"]=get_option('botwriter_openai_model');
 
-
-     
-    $current_time = gmdate('Y-m-d H:i:s', current_time('timestamp'));            
+    $current_time = gmdate('Y-m-d H:i:s', current_time('timestamp'));
     $data["last_execution_time"]=$current_time;
     
     $last_execution_time = $data["last_execution_time"];   
