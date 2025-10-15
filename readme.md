@@ -2,19 +2,15 @@
 	<img src="assets/images/banner-1544x500.png" alt="BotWriter banner" />
 </div>
 
-<div align="center">
+<p align="center">
 	<img src="assets/images/icon-256x256.png" alt="BotWriter icon" width="96" />
-  
-	<br/>
-  
-	<a href="https://www.wpbotwriter.com" target="_blank">
-		<img src="https://img.shields.io/badge/Website-wpbotwriter.com-2ea44f" alt="Website" />
-	</a>
-	<img src="https://img.shields.io/badge/version-1.4.1-green" alt="Version 1.4.1" />
-	<img src="https://img.shields.io/badge/WordPress-6.8-blue?logo=wordpress" alt="WordPress 6.8" />
-	<img src="https://img.shields.io/badge/PHP-%3E%3D%207.0-777BB4?logo=php" alt=">= PHP 7.0" />
-	<img src="https://img.shields.io/badge/license-GPLv2-orange" alt="GPLv2" />
-</div>
+</p>
+
+[![Website](https://img.shields.io/badge/Website-wpbotwriter.com-2ea44f)](https://www.wpbotwriter.com)
+![Version](https://img.shields.io/badge/version-1.4.1-green)
+![WordPress](https://img.shields.io/badge/WordPress-6.8-blue?logo=wordpress)
+![PHP](https://img.shields.io/badge/PHP-%3E%3D%207.0-777BB4?logo=php)
+![License](https://img.shields.io/badge/license-GPLv2-orange)
 
 # BotWriter
 
